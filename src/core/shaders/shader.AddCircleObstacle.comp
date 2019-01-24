@@ -1,0 +1,39 @@
+
+#version 430
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+uvec2 _Size;
+
+layout(std430) buffer xst__Obstacles
+{
+    vec2 _Obstacles[];
+};
+
+uniform float _Radius;
+
+uniform vec2 _Position;
+
+uniform int _Static;
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    const uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    const vec2 splat_pos = _Position * vec2(_Size);
+    if (distance(splat_pos, vec2(gl_GlobalInvocationID)) <= _Radius)
+    {
+        if (_Static > 0)
+        {
+            _Obstacles[pos].y = 1.0f;
+        }
+        else
+        {
+            _Obstacles[pos].x = 1.0f;
+        }
+    }
+}
+

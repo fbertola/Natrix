@@ -1,0 +1,37 @@
+
+#version 430
+
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+
+uvec2 _Size;
+
+layout(std430) buffer xst__VelocityIn
+{
+    vec2 _VelocityIn[];
+};
+
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    if (gl_GlobalInvocationID.x == 0u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+    else if (gl_GlobalInvocationID.x == _Size.x - 1u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+    else if (gl_GlobalInvocationID.y == 0u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+    else if (gl_GlobalInvocationID.y == _Size.y - 1u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+}
+
