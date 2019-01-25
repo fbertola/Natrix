@@ -1,31 +1,22 @@
 
 #version 430
 
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout(local_size_x = {% NUM_THREADS %}, local_size_y = {% NUM_THREADS %}, local_size_z = 1) in;
 
-uvec2 _Size;
+uniform uvec2 _Size;
 
-layout(std430) buffer xst__VelocityIn
+layout(std430, binding={% VELOCITY_IN %}) buffer xst__VelocityIn
 {
     vec2 _VelocityIn[];
 };
 
-layout(std430) buffer xst__VelocityOut
+layout(std430, binding={% VELOCITY_OUT %}) buffer xst__VelocityOut
 {
     vec2 _VelocityOut[];
 };
 
-uvec4 GetNeighbours(ivec2 pos, ivec2 size)
-{
-    uvec4 result;
-    const int maxX = size.x - 1;
-    const int maxY = size.y - 1;
-    result.x = uint(pos.y) * _Size.x + uint(clamp(pos.x - 1, 0, maxX));
-    result.y = uint(pos.y) * _Size.x + uint(clamp(pos.x + 1, 0, maxX));
-    result.z = uint(clamp(pos.y - 1, 0, maxY) * size.x + pos.x);
-    result.w = uint(clamp(pos.y + 1, 0, maxY) * size.x + pos.x);
-    return result;
-}
+
+{% include 'tmpl.GetNeighbours.comp' %}
 
 uniform float _Alpha;
 

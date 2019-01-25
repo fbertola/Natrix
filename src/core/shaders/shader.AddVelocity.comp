@@ -1,16 +1,16 @@
 
 #version 430
 
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 1) in;
+layout(local_size_x = {% NUM_THREADS %}, local_size_y = {% NUM_THREADS %}, local_size_z = 1) in;
 
 uniform vec2 _Size;
 
-layout(std430, binding=1) buffer xst__VelocityIn
+layout(std430, binding={% VELOCITY_IN %}) buffer xst__VelocityIn
 {
     vec2 _VelocityIn[];
 };
 
-layout(std430, binding=2) buffer xst__VelocityOut
+layout(std430, binding={% VELOCITY_OUT %}) buffer xst__VelocityOut
 {
     vec2 _VelocityOut[];
 };

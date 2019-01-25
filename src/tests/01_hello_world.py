@@ -1,6 +1,6 @@
-'''
+"""
     Renders a traingle that has all RGB combinations
-'''
+"""
 
 import moderngl
 

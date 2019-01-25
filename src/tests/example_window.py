@@ -44,7 +44,10 @@ class ExampleWindow(QtOpenGL.QGLWidget):
         self.ex = None
 
         self.wnd = WindowInfo()
-        self.wnd.viewport = (0, 0) + (size[0] * self.devicePixelRatio(), size[1] * self.devicePixelRatio())
+        self.wnd.viewport = (0, 0) + (
+            size[0] * self.devicePixelRatio(),
+            size[1] * self.devicePixelRatio(),
+        )
         self.wnd.ratio = size[0] / size[1]
         self.wnd.size = size
 
@@ -76,7 +79,9 @@ class ExampleWindow(QtOpenGL.QGLWidget):
 
 def run_example(example):
     app = QtWidgets.QApplication([])
-    widget = ExampleWindow(example.WINDOW_SIZE, getattr(example, 'WINDOW_TITLE', example.__name__))
+    widget = ExampleWindow(
+        example.WINDOW_SIZE, getattr(example, "WINDOW_TITLE", example.__name__)
+    )
     example.wnd = widget.wnd
     widget.example = example
     widget.show()

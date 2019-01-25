@@ -5,12 +5,15 @@ verify_ssl = true
 
 [dev-packages]
 pyqt5 = "*"
+black = "==18.9b0"
 
 [packages]
 moderngl = "*"
 numpy = "*"
 pillow = "*"
 vulkan = "*"
+jinja2 = "*"
+python-decouple = "*"
 
 [requires]
 python_version = "3.7"
