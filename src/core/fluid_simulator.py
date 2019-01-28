@@ -6,6 +6,7 @@ from moderngl import Context
 
 from src.core.common.constants import TemplateConstants
 from src.core.utils.shaders_utils import read_shader_source
+import imageio
 
 
 class FluidSimulator:
@@ -14,26 +15,6 @@ class FluidSimulator:
 
     PRESSURE_READ = 0
     PRESSURE_WRITE = 1
-
-    # Compute Shader Kernel Ids
-    _add_velocity_kernel = None
-    _init_boundaries_kernel = None
-    _advect_velocity_kernel = None
-    _divergence_kernel = None
-    _poisson_kernel = None
-    _subtract_gradient_kernel = None
-    _calc_vorticity_kernel = None
-    _apply_vorticity_kernel = None
-    _viscosity_kernel = None
-    _add_circle_obstacle_kernel = None
-    _add_triangle_obstacle_kernel = None
-    _clear_buffer_kernel = None
-
-    _velocity_buffer = None
-    _divergence_buffer = None
-    _pressure_buffer = None
-    _vorticity_buffer = None
-    _obstacles_buffer = None
 
     _num_cells = 0
     _num_groups_x = 0
@@ -44,28 +25,19 @@ class FluidSimulator:
     # Public properties
     speed = 500.0
     iterations = 50
-    velocity_dissipation = 1.0
+    velocity_dissipation = 0.0
     vorticity = 0.0
-    viscosity = 0.0
+    viscosity = 0.1
     resolution = 512
     simulate = True
 
-    def __init__(self, context: Context):
+    def __init__(self, context: Context, width: int, height: int):
         self.context = context
 
         self._load_compute_kernels()
+        self._set_size(width, height)
         self._create_buffers()
         self._init_compute_kernels()
-
-    def set_size(self, width: int, height: int):
-        group_size_x = TemplateConstants.NUM_THREADS.value
-        group_size_y = TemplateConstants.NUM_THREADS.value
-
-        self._width = width
-        self._height = height
-        self._num_cells = width * height
-        self._num_groups_x = int(ceil(float(width) / float(group_size_x)))
-        self._num_groups_y = int(ceil(float(height) / float(group_size_y)))
 
     def add_velocity(self, position: tuple, velocity: tuple, radius: float):
         self._add_velocity_kernel["_Position"].value = position
@@ -95,7 +67,7 @@ class FluidSimulator:
 
             # Viscosity
             if self.viscosity > 0.0:
-                for i in range(self.iterations):
+                for _ in range(self.iterations):
                     self._viscosity_kernel.run(
                         self._num_groups_x, self._num_groups_y, 1
                     )
@@ -114,7 +86,7 @@ class FluidSimulator:
             )
 
             # Poisson
-            for i in range(self.iterations):
+            for _ in range(self.iterations):
                 self._poisson_kernel.run(self._num_groups_x, self._num_groups_y, 1)
                 self._flip_pressure_buffer()
 
@@ -132,6 +104,16 @@ class FluidSimulator:
             self._obstacles_buffer.bind_to_storage_buffer(
                 TemplateConstants.OBSTACLES.value
             )
+
+    def _set_size(self, width: int, height: int):
+        group_size_x = TemplateConstants.NUM_THREADS.value
+        group_size_y = TemplateConstants.NUM_THREADS.value
+
+        self._width = width
+        self._height = height
+        self._num_cells = width * height
+        self._num_groups_x = int(ceil(float(width) / float(group_size_x)))
+        self._num_groups_y = int(ceil(float(height) / float(group_size_y)))
 
     def _update_params(self, time_delta: float):
 
@@ -232,15 +214,15 @@ class FluidSimulator:
             read_shader_source("shader.Viscosity.comp")
         )
 
-    def _create_point_buffer(self):
-        data = [0.0 for _ in range(self._num_cells)]
-        data_bytes = np.array(data).astype("f4").tobytes()
+    def _create_point_buffer(self, default_value=0.0):
+        data = [default_value for _ in range(self._num_cells)]
+        data_bytes = np.array(data).astype(np.float32).tobytes()
 
         return self.context.buffer(data_bytes)
 
-    def _create_vector_buffer(self):
-        data = [[0.0, 0.0] for _ in range(self._num_cells)]
-        data_bytes = np.array(data).astype("f4").tobytes()
+    def _create_vector_buffer(self, default_value_x=0.0, default_value_y=0.0):
+        data = [[default_value_x, default_value_y] for _ in range(self._num_cells)]
+        data_bytes = np.array(data).astype(np.float32).tobytes()
 
         return self.context.buffer(data_bytes)
 
@@ -279,6 +261,12 @@ class FluidSimulator:
 
 
 if __name__ == "__main__":
-    simulator = FluidSimulator(moderngl.create_standalone_context())
-    simulator.set_size(10, 10)
-    simulator.add_velocity((1, 1), (0.5, 0.5), 1.0)
+    simulator = FluidSimulator(moderngl.create_standalone_context(), 8, 8)
+
+    simulator.add_velocity((0.5, 0.5), (0.5, 0.5), 1.5)
+
+    for i in range(60):
+        simulator.update(0.003)
+        output = np.frombuffer(simulator._velocity_buffer[simulator.VELOCITY_READ].read(), dtype=np.float32)
+        output = output.reshape((8, 8, 2))
+        print(output)

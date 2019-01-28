@@ -7,9 +7,9 @@ from src.core.common.constants import TemplateConstants
 
 def read_shader_source(name):
     path = Path(__file__).parent.parent / "shaders"
-    env = Environment(loader=FileSystemLoader(path), trim_blocks=True)
+    env = Environment(loader=FileSystemLoader(str(path.resolve())), trim_blocks=True)
 
-    env.get_template(name).render(
+    return env.get_template(name).render(
         NUM_THREADS=TemplateConstants.NUM_THREADS.value,
         VELOCITY_IN=TemplateConstants.VELOCITY_IN.value,
         VELOCITY_OUT=TemplateConstants.VELOCITY_OUT.value,

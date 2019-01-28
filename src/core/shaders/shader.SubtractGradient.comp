@@ -1,26 +1,26 @@
 
 #version 430
 
-layout(local_size_x = {% NUM_THREADS %}, local_size_y = {% NUM_THREADS %}, local_size_z = 1) in;
+layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
 
 uniform uvec2 _Size;
 
-layout(std430, binding={% VELOCITY_IN %}) buffer xst__VelocityIn
+layout(std430, binding={{ VELOCITY_IN }}) buffer xst__VelocityIn
 {
     vec2 _VelocityIn[];
 };
 
-layout(std430, binding={% VELOCITY_OUT %}) buffer xst__VelocityOut
+layout(std430, binding={{ VELOCITY_OUT }}) buffer xst__VelocityOut
 {
     vec2 _VelocityOut[];
 };
 
-layout(std430, binding={% OBSTACLES %}) buffer xst__Obstacles
+layout(std430, binding={{ OBSTACLES }}) buffer xst__Obstacles
 {
     vec2 _Obstacles[];
 };
 
-layout(std430, binding={% PRESSURE_IN %}) buffer xst__PressureIn
+layout(std430, binding={{ PRESSURE_IN }}) buffer xst__PressureIn
 {
     float _PressureIn[];
 };
