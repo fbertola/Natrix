@@ -54,7 +54,6 @@ void main()
         const vec2 h1 = mix(lt, rt, vec2(delta.x));
         const vec2 h2 = mix(lb, rb, vec2(delta.x));
         _VelocityOut[pos] = clamp(mix(h2, h1, vec2(delta.y)) * _Dissipation, vec2(-1.0, -1.0), vec2(1.0, 1.0));
-        _VelocityOut[pos] = h2;
     }
 }
 

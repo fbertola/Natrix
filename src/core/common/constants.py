@@ -13,3 +13,5 @@ class TemplateConstants(IntEnum):
     DIVERGENCE = 6
     OBSTACLES = 7
     GENERIC = 8
+    PARTICLES_IN = 9
+    PARTICLES_OUT = 10

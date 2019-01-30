@@ -25,7 +25,7 @@ class FluidSimulator:
     # Public properties
     speed = 500.0
     iterations = 50
-    velocity_dissipation = 0.0
+    velocity_dissipation = 1.0
     vorticity = 0.0
     viscosity = 0.1
     resolution = 512
@@ -119,6 +119,7 @@ class FluidSimulator:
 
         self._advect_velocity_kernel["_ElapsedTime"].value = time_delta
         self._advect_velocity_kernel["_Speed"].value = self.speed
+        self._advect_velocity_kernel["_Dissipation"].value = self.velocity_dissipation
 
         self._apply_vorticity_kernel["_ElapsedTime"].value = time_delta
         self._apply_vorticity_kernel["_VorticityScale"].value = self.vorticity
@@ -263,9 +264,9 @@ class FluidSimulator:
 if __name__ == "__main__":
     simulator = FluidSimulator(moderngl.create_standalone_context(), 8, 8)
 
-    simulator.add_velocity((0.5, 0.5), (0.5, 0.5), 1.5)
+    simulator.add_velocity((0.5, 0.5), (0.5, -0.5), 1.0)
 
-    for i in range(60):
+    for i in range(1):
         simulator.update(0.003)
         output = np.frombuffer(simulator._velocity_buffer[simulator.VELOCITY_READ].read(), dtype=np.float32)
         output = output.reshape((8, 8, 2))
