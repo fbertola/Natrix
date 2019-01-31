@@ -4,17 +4,15 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pyqt5 = "*"
 black = "==18.9b0"
 imageio = "*"
 
 [packages]
 moderngl = "*"
 numpy = "*"
-pillow = "*"
-vulkan = "*"
 jinja2 = "*"
 python-decouple = "*"
+pyglet = "*"
 
 [requires]
 python_version = "3.7"

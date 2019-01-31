@@ -1,5 +1,5 @@
 
-#version 430
+#version 310 es
 
 layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
 
@@ -23,12 +23,12 @@ void main()
     {
         return;
     }
-    const uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    const uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
-    const vec2 vL = _VelocityIn[n.x];
-    const vec2 vR = _VelocityIn[n.y];
-    const vec2 vB = _VelocityIn[n.z];
-    const vec2 vT = _VelocityIn[n.w];
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    vec2 vL = _VelocityIn[n.x];
+    vec2 vR = _VelocityIn[n.y];
+    vec2 vB = _VelocityIn[n.z];
+    vec2 vT = _VelocityIn[n.w];
     _Vorticity[pos] = 0.5f * ((vR.y - vL.y) - (vT.x - vB.x));
 }
 

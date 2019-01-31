@@ -1,5 +1,5 @@
 
-#version 430
+#version 310 es
 
 layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
 
@@ -33,19 +33,19 @@ void main()
     {
         return;
     }
-    const uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    const float rbeta = 0.25f;
-    const uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    float rbeta = 0.25f;
+    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
     float p = _PressureIn[pos];
-    const vec2 obsL = _Obstacles[n.x];
-    const vec2 obsR = _Obstacles[n.y];
-    const vec2 obsB = _Obstacles[n.z];
-    const vec2 obsT = _Obstacles[n.w];
-    const float x1 = (obsL.x > 0.0f || obsL.y > 0.0f) ? p : _PressureIn[n.x];
-    const float x2 = (obsR.x > 0.0f || obsR.y > 0.0f) ? p : _PressureIn[n.y];
-    const float y1 = (obsB.x > 0.0f || obsB.y > 0.0f) ? p : _PressureIn[n.z];
-    const float y2 = (obsT.x > 0.0f || obsT.y > 0.0f) ? p : _PressureIn[n.w];
-    const float b = _Divergence[pos];
+    vec2 obsL = _Obstacles[n.x];
+    vec2 obsR = _Obstacles[n.y];
+    vec2 obsB = _Obstacles[n.z];
+    vec2 obsT = _Obstacles[n.w];
+    float x1 = (obsL.x > 0.0f || obsL.y > 0.0f) ? p : _PressureIn[n.x];
+    float x2 = (obsR.x > 0.0f || obsR.y > 0.0f) ? p : _PressureIn[n.y];
+    float y1 = (obsB.x > 0.0f || obsB.y > 0.0f) ? p : _PressureIn[n.z];
+    float y2 = (obsT.x > 0.0f || obsT.y > 0.0f) ? p : _PressureIn[n.w];
+    float b = _Divergence[pos];
     _PressureOut[pos] = (x1 + x2 + y1 + y2 - b) * rbeta;
 }
 

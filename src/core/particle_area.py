@@ -47,6 +47,12 @@ class ParticleArea:
         self._advect_particles_kernel.run(self._num_groups_x, self._num_groups_y, 1)
         self._flip_buffer()
 
+    def read_particles_buffer(self):
+        if not self._particles_buffer[self.READ]:
+            print('Buffer empty')
+
+        return np.frombuffer(self._particles_buffer[self.READ].read(), dtype=np.float32)
+
     def _set_size(self):
         particle_size = (self._width, self._height)
         velocity_size = (self._width, self._height) # FIXME: this should be configurable
@@ -115,7 +121,7 @@ if __name__ == "__main__":
         fluid_simulator.update(0.001)
         particle_area.update(0.001)
 
-        output = np.frombuffer(particle_area._particles_buffer[particle_area.READ].read(), dtype=np.float32)
+        output = particle_area.read_particles_buffer()
         output = output.reshape((512, 512, 1))
         output = np.multiply(output, 255).astype(np.uint8)
         #print(output)

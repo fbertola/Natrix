@@ -1,5 +1,5 @@
 
-#version 430
+#version 310 es
 
 layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
 
@@ -22,8 +22,8 @@ void main()
     {
         return;
     }
-    const uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    const vec2 splat_pos = _Position * vec2(_Size);
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    vec2 splat_pos = _Position * vec2(_Size);
     if (distance(splat_pos, vec2(gl_GlobalInvocationID)) <= _Radius)
     {
         if (_Static > 0)
