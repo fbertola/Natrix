@@ -11,7 +11,7 @@ from src.core.utils.shaders_utils import read_shader_source
 root_path = Path(__file__).parent / "shaders"
 
 ctx = moderngl.create_context()
-wnd = pyglet.window.Window(width=512, height=512)
+wnd = pyglet.window.Window(caption='Test Smoke', width=512, height=512)
 
 print(ctx.error)
 print(wnd.context.get_info().get_version())
@@ -30,8 +30,9 @@ prog = ctx.program(
     fragment_shader=read_shader_source('demo.FragmentShader.frag', root_path)
 )
 
-pixels = np.zeros((512, 512), dtype='f4')
-texture = ctx.texture((512, 512), 1, pixels.tobytes(), dtype='f4')
+TEXTURE_SIZE = 512
+pixels = np.zeros((TEXTURE_SIZE, TEXTURE_SIZE), dtype='f4')
+texture = ctx.texture((TEXTURE_SIZE, TEXTURE_SIZE), 1, pixels.tobytes(), dtype='f4')
 texture.filter = (moderngl.NEAREST, moderngl.NEAREST)
 texture.swizzle = 'RRR1'
 texture.use()
@@ -40,12 +41,12 @@ vbo = ctx.buffer(canvas.tobytes())
 vao = ctx.simple_vertex_array(prog, vbo, 'pos')
 
 fluid_simulator = FluidSimulator(ctx, 512, 512)
-particle_area = ParticleArea(ctx, 512, 512)
+particle_area = ParticleArea(ctx, TEXTURE_SIZE, TEXTURE_SIZE)
 
-fluid_simulator.vorticity = 10.0
-fluid_simulator.viscosity = 0.0001
-
-particle_area.dissipation = 0.999999
+fluid_simulator.vorticity = 0.0
+fluid_simulator.viscosity = 0.000000000001
+fluid_simulator.resolution = 64
+particle_area.dissipation = 0.9999
 
 
 @wnd.event
@@ -57,11 +58,16 @@ def on_draw():
 
 def update(time_delta):
     vel_x = random.uniform(-0.08, 0.08)
-    vel_y = random.uniform(0.0, 0.2)
-    fluid_simulator.add_velocity((0.5, 0.01), (vel_x, vel_y), 60.0)
-    particle_area.add_particles((0.5, 0.1), 40.0, 0.05)
-    fluid_simulator.update(time_delta)
-    particle_area.update(time_delta)
+    vel_y = random.uniform(-0.01, 0.2)
+    strength = random.uniform(0.02, 0.08)
+
+    fluid_simulator.add_velocity((0.5, 0.01), (vel_x, vel_y), 44.0)
+    fluid_simulator.add_circle_obstacle((0.5, 0.5), 20)
+    particle_area.add_particles((0.5, 0.1), 34.0, strength)
+
+    fluid_simulator.update(time_delta * 2)
+    particle_area.update(time_delta * 2)
+
     print(pyglet.clock.get_fps())
 
 

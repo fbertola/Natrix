@@ -6,7 +6,6 @@ from moderngl import Context
 
 from src.core.common.constants import TemplateConstants
 from src.core.utils.shaders_utils import read_shader_source
-import imageio
 
 
 class FluidSimulator:
@@ -46,6 +45,24 @@ class FluidSimulator:
 
         self._add_velocity_kernel.run(self._num_groups_x, self._num_groups_y, 1)
         self._flip_velocity_buffer()
+
+    # position in normalised local space
+    # fRadius in world space
+    def add_circle_obstacle(self, position, radius, static=False):
+        self._add_circle_obstacle_kernel["_Position"].value = position
+        self._add_circle_obstacle_kernel["_Radius"].value = radius
+        self._add_circle_obstacle_kernel["_Static"].value = 1 if static else 0
+
+        self._add_circle_obstacle_kernel.run(self._num_groups_x, self._num_groups_y, 1)
+
+    # points in normalised local space
+    def add_triangle_obstacle(self, p1, p2, p3, static=False):
+        self._add_triangle_obstacle_kernel["_P1"].value = p1
+        self._add_triangle_obstacle_kernel["_P2"].value = p2
+        self._add_triangle_obstacle_kernel["_P3"].value = p2
+        self._add_triangle_obstacle_kernel["_Static"].value = 1 if static else 0
+
+        self._add_triangle_obstacle_kernel.run(self._num_groups_x, self._num_groups_y, 1)
 
     def update(self, time_delta: float):
         if self.simulate:
