@@ -5,9 +5,9 @@ import moderngl
 import numpy as np
 from moderngl import Context
 
-from src.core.common.constants import TemplateConstants
-from src.core.fluid_simulator import FluidSimulator
-from src.core.utils.shaders_utils import read_shader_source, create_point_buffer
+from natrix.core.common.constants import TemplateConstants
+from natrix.core.fluid_simulator import FluidSimulator
+from natrix.core.utils.shaders_utils import read_shader_source, create_point_buffer
 
 
 class ParticleArea:
@@ -16,22 +16,50 @@ class ParticleArea:
 
     _width = 512
     _height = 512
-    _particles_buffer = None # FIXME: accessors
+    _particles_buffer = None
 
-    speed = 500.0
-    dissipation = 1.0
+    _speed = 500.0
+    _dissipation = 1.0
 
-    def __init__(self, context: Context, width=512, height=512, resolution=128):
+    def __init__(self, context: Context, width=512, height=512):
         self.context = context
 
         self._width = width
         self._height = height
-        self._resolution = resolution
 
         self._load_compute_kernels()
         self._set_size()
         self._create_buffers()
         self._init_compute_kernels()
+
+    @property
+    def speed(self):
+        return self._speed
+
+    @speed.setter
+    def speed(self, value):
+        if value > 0:
+            self._speed = value
+        else:
+            raise ValueError("'Speed' should be greater than zero")
+
+    @property
+    def dissipation(self):
+        return self._dissipation
+
+    @dissipation.setter
+    def dissipation(self, value):
+        if value > 0:
+            self._dissipation = value
+        else:
+            raise ValueError("'Dissipation' should be grater than zero")
+
+    @property
+    def particles(self):
+        if not self._particles_buffer[self.READ]:
+            raise RuntimeError('Particles buffer is empty')
+
+        return np.frombuffer(self._particles_buffer[self.READ].read(), dtype=np.float32)
 
     def add_particles(self, position: tuple, radius: float, strength: float):
         self._add_particles_kernel["_Position"].value = position
@@ -47,15 +75,9 @@ class ParticleArea:
         self._advect_particles_kernel.run(self._num_groups_x, self._num_groups_y, 1)
         self._flip_buffer()
 
-    def read_particles_buffer(self):
-        if not self._particles_buffer[self.READ]:
-            print('Buffer empty')
-
-        return np.frombuffer(self._particles_buffer[self.READ].read(), dtype=np.float32)
-
     def _set_size(self):
         particle_size = (self._width, self._height)
-        velocity_size = (self._width, self._height) # FIXME: this should be configurable
+        velocity_size = (self._width, self._height)
         group_size_x = TemplateConstants.NUM_THREADS.value
         group_size_y = TemplateConstants.NUM_THREADS.value
 
@@ -104,28 +126,3 @@ class ParticleArea:
     def __del__(self):
         self._particles_buffer[0].release()
         self._particles_buffer[1].release()
-
-
-if __name__ == "__main__":
-    imgs = []
-    context = moderngl.create_standalone_context()
-    fluid_simulator = FluidSimulator(context, 512, 512)
-    particle_area = ParticleArea(context, 512, 512)
-
-    particle_area.add_particles((0.5, 0.5), 30.0, 1)
-
-    for i in range(60*10):
-        #particle_area.add_particles((0.5, 0.5), 30.0, 1)
-        fluid_simulator.add_velocity((0.5, 0.5), (1.0, -1.0), 30.0)
-
-        fluid_simulator.update(0.001)
-        particle_area.update(0.001)
-
-        output = particle_area.read_particles_buffer()
-        output = output.reshape((512, 512, 1))
-        output = np.multiply(output, 255).astype(np.uint8)
-        #print(output)
-        imgs.append(output)
-
-    # if you don't want to use imageio, remove this line
-    imageio.mimwrite("./debug.gif", imgs, "GIF")

@@ -4,7 +4,7 @@ import numpy as np
 from jinja2 import Environment, FileSystemLoader
 from moderngl import Context
 
-from src.core.common.constants import TemplateConstants
+from natrix.core.common.constants import TemplateConstants
 
 
 def read_shader_source(name, root_path=None):
