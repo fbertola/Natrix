@@ -1,0 +1,17 @@
+include LICENSE README.md CONTRIBUTING.md CODE_OF_CONDUCT.md CHANGELOG.rst NOTICES HISTORY.txt
+exclude .gitmodules
+exclude .editorconfig .travis.yml .env appveyor.yml tox.ini pytest.ini
+exclude Pipfile* CHANGELOG.draft.rst
+
+recursive-include docs Makefile *.rst *.py *.bat
+recursive-include docs/_templates *.html
+recursive-include docs/_static *.js *.css *.png
+recursive-exclude docs requirements*.txt
+recursive-exclude natrix *.pyi
+recursive-exclude natrix *.typed
+
+prune .github
+prune docs/build
+prune news
+prune tasks
+prune tests
