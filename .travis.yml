@@ -7,3 +7,6 @@ before_install:
 
 install:
   - pipenv sync --dev
+
+script:
+  - true
