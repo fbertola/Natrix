@@ -6,6 +6,7 @@ exclude Pipfile* CHANGELOG.draft.rst
 recursive-include docs Makefile *.rst *.py *.bat
 recursive-include docs/_templates *.html
 recursive-include docs/_static *.js *.css *.png
+recursive-include natrix/core/shaders *.comp
 recursive-exclude docs requirements*.txt
 recursive-exclude natrix *.pyi
 recursive-exclude natrix *.typed
