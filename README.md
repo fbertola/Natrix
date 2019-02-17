@@ -22,7 +22,9 @@
   <a href="#license">License</a>
 </p>
 
-![screenshot](https://raw.githubusercontent.com/fbertola/Natrix/master/media/animation3.gif)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/fbertola/Natrix/master/media/animation3.gif">
+</p>
 
 ## Key Features
 
