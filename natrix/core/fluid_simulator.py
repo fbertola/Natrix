@@ -3,7 +3,11 @@ from math import ceil
 from moderngl import Context
 
 from natrix.core.common.constants import TemplateConstants
-from natrix.core.utils.shaders_utils import read_shader_source, create_point_buffer, create_vector_buffer
+from natrix.core.utils.shaders_utils import (
+    read_shader_source,
+    create_point_buffer,
+    create_vector_buffer,
+)
 
 
 class FluidSimulator:
@@ -114,7 +118,9 @@ class FluidSimulator:
         self._add_triangle_obstacle_kernel["_P3"].value = p2
         self._add_triangle_obstacle_kernel["_Static"].value = 1 if static else 0
 
-        self._add_triangle_obstacle_kernel.run(self._num_groups_x, self._num_groups_y, 1)
+        self._add_triangle_obstacle_kernel.run(
+            self._num_groups_x, self._num_groups_y, 1
+        )
 
     def update(self, time_delta: float):
         if self.simulate:

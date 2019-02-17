@@ -1,12 +1,9 @@
 from math import ceil
 
-import imageio
-import moderngl
 import numpy as np
 from moderngl import Context
 
 from natrix.core.common.constants import TemplateConstants
-from natrix.core.fluid_simulator import FluidSimulator
 from natrix.core.utils.shaders_utils import read_shader_source, create_point_buffer
 
 
@@ -57,7 +54,7 @@ class ParticleArea:
     @property
     def particles(self):
         if not self._particles_buffer[self.READ]:
-            raise RuntimeError('Particles buffer is empty')
+            raise RuntimeError("Particles buffer is empty")
 
         return np.frombuffer(self._particles_buffer[self.READ].read(), dtype=np.float32)
 
@@ -69,9 +66,9 @@ class ParticleArea:
         self._flip_buffer()
 
     def update(self, time_delta: float):
-        self._advect_particles_kernel['_Dissipation'].value = self.dissipation
-        self._advect_particles_kernel['_ElapsedTime'].value = time_delta
-        self._advect_particles_kernel['_Speed'].value = self.speed
+        self._advect_particles_kernel["_Dissipation"].value = self.dissipation
+        self._advect_particles_kernel["_ElapsedTime"].value = time_delta
+        self._advect_particles_kernel["_Speed"].value = self.speed
         self._advect_particles_kernel.run(self._num_groups_x, self._num_groups_y, 1)
         self._flip_buffer()
 

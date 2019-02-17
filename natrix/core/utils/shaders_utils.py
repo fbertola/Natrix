@@ -33,7 +33,9 @@ def create_point_buffer(context: Context, length: int, default_value=0.0):
     return context.buffer(data_bytes)
 
 
-def create_vector_buffer(context: Context, length: int, default_value_x=0.0, default_value_y=0.0):
+def create_vector_buffer(
+    context: Context, length: int, default_value_x=0.0, default_value_y=0.0
+):
     data = [[default_value_x, default_value_y] for _ in range(length)]
     data_bytes = np.array(data).astype(np.float32).tobytes()
 
