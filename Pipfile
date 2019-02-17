@@ -7,13 +7,14 @@ verify_ssl = true
 black = "==18.9b0"
 imageio = "*"
 pygame = "*"
+twine = "*"
+pyglet = "*"
 
 [packages]
 moderngl = "*"
 numpy = "*"
 jinja2 = "*"
 python-decouple = "*"
-pyglet = "*"
 
 [requires]
-python_version = "3.7"
+python_version = ">=3.6"
