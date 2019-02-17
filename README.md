@@ -21,6 +21,8 @@
   <a href="#license">License</a>
 </p>
 
+![screenshot](https://raw.githubusercontent.com/fbertola/Natrix/master/media/animation1.gif)
+
 ## Key Features
 
 * Fast - leverages Compute Shaders to offloads most of the calculations to the GPU.
