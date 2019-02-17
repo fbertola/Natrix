@@ -1,0 +1,9 @@
+language: python
+python:
+  - "3.6"
+
+before_install:
+  - pip3 install pipenv
+
+install:
+  - pipenv sync --dev
