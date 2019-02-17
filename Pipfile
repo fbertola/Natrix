@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 black = "==18.9b0"
 imageio = "*"
-cocos2d = "*"
+pygame = "*"
 
 [packages]
 moderngl = "*"
