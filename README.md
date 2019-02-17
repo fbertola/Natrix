@@ -54,7 +54,7 @@ You will find some examples in the `demo` folder, be sure to check them out befo
 This software uses the following open source packages:
 
 - [ModernGL](https://github.com/cprogrammer1994/ModernGL)
-- [Jinnja2](https://github.com/pallets/jinja)
+- [Jinja2](https://github.com/pallets/jinja)
 - [Pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home)
 - [Pygame](https://github.com/pygame/pygame)
 
