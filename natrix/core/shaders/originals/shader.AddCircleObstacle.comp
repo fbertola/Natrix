@@ -1,0 +1,37 @@
+
+#include "bgfx_compute.sh"
+
+uniform uvec2 _Size;
+
+BUFFER_WR(_Obstacles, vec2, 0);
+
+uniform float _Radius;
+
+uniform vec2 _Position;
+
+uniform int _Static;
+
+#define GROUP_SIZE 512
+
+NUM_THREADS(GROUP_SIZE, 1, 1)
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    vec2 splat_pos = _Position * vec2(_Size);
+    if (distance(splat_pos, vec2(gl_GlobalInvocationID)) <= _Radius)
+    {
+        if (_Static > 0)
+        {
+            _Obstacles[pos].y = 1.0f;
+        }
+        else
+        {
+            _Obstacles[pos].x = 1.0f;
+        }
+    }
+}
+

@@ -1,0 +1,39 @@
+
+#include "bgfx_compute.sh"
+
+uniform uvec2 _Size;
+
+BUFFER_RO(_VelocityIn, vec2, 0);
+
+BUFFER_WR(_Vorticity, vec2, 1);
+
+uvec4 GetNeighbours(ivec2 pos, ivec2 size)
+{
+    uvec4 result;
+    int maxX = size.x - 1;
+    int maxY = size.y - 1;
+    result.x = uint(pos.y) * _Size.x + uint(clamp(pos.x - 1, 0, maxX));
+    result.y = uint(pos.y) * _Size.x + uint(clamp(pos.x + 1, 0, maxX));
+    result.z = uint(clamp(pos.y - 1, 0, maxY) * size.x + pos.x);
+    result.w = uint(clamp(pos.y + 1, 0, maxY) * size.x + pos.x);
+    return result;
+}
+
+#define GROUP_SIZE 512
+
+NUM_THREADS(GROUP_SIZE, 1, 1)
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    vec2 vL = _VelocityIn[n.x];
+    vec2 vR = _VelocityIn[n.y];
+    vec2 vB = _VelocityIn[n.z];
+    vec2 vT = _VelocityIn[n.w];
+    _Vorticity[pos] = 0.5f * ((vR.y - vL.y) - (vT.x - vB.x));
+}
+

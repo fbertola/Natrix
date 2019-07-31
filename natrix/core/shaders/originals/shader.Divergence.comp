@@ -1,0 +1,54 @@
+
+#include "bgfx_compute.sh"
+
+uniform uvec2 _Size;
+
+BUFFER_RO(_VelocityIn, vec2, 0);
+
+BUFFER_RO(_Obstacles, vec2, 1);
+
+BUFFER_WR(_Divergence, float, 2);
+
+
+uvec4 GetNeighbours(ivec2 pos, ivec2 size)
+{
+    uvec4 result;
+    int maxX = size.x - 1;
+    int maxY = size.y - 1;
+    result.x = uint(pos.y) * _Size.x + uint(clamp(pos.x - 1, 0, maxX));
+    result.y = uint(pos.y) * _Size.x + uint(clamp(pos.x + 1, 0, maxX));
+    result.z = uint(clamp(pos.y - 1, 0, maxY) * size.x + pos.x);
+    result.w = uint(clamp(pos.y + 1, 0, maxY) * size.x + pos.x);
+    return result;
+}
+
+#define GROUP_SIZE 512
+
+NUM_THREADS(GROUP_SIZE, 1, 1)
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    float x1 = _VelocityIn[n.x].x;
+    float x2 = _VelocityIn[n.y].x;
+    float y1 = _VelocityIn[n.z].y;
+    float y2 = _VelocityIn[n.w].y;
+    vec2 obsL = _Obstacles[n.x];
+    vec2 obsR = _Obstacles[n.y];
+    vec2 obsB = _Obstacles[n.z];
+    vec2 obsT = _Obstacles[n.w];
+    if (obsL.x > 0.0f || obsL.y > 0.0f)
+        x1 = 0.0f;
+    if (obsR.x > 0.0f || obsR.y > 0.0f)
+        x2 = 0.0f;
+    if (obsB.x > 0.0f || obsB.y > 0.0f)
+        y1 = 0.0f;
+    if (obsT.x > 0.0f || obsT.y > 0.0f)
+        y2 = 0.0f;
+    _Divergence[pos] = 0.5f * ((x2 - x1) + (y2 - y1));
+}
+

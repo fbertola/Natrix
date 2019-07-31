@@ -1,0 +1,36 @@
+
+#include "bgfx_compute.sh"
+
+BUFFER_RO(_ParticlesIn, float, 0);
+
+BUFFER_WR(_ParticlesOut, float, 1);
+
+uniform float _Radius;
+
+uniform vec2 _Position;
+
+uniform float _Value;
+
+uniform uvec2 _ParticleSize;
+
+#define GROUP_SIZE 512
+
+NUM_THREADS(GROUP_SIZE, 1, 1)
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _ParticleSize.x || gl_GlobalInvocationID.y >= _ParticleSize.y)
+    {
+        return;
+    }
+    uint pos = gl_GlobalInvocationID.y * _ParticleSize.x + gl_GlobalInvocationID.x;
+    vec2 splat_pos = _Position * vec2(_ParticleSize);
+    float val = _ParticlesIn[pos];
+    float result = val;
+    float len = distance(splat_pos, vec2(gl_GlobalInvocationID));
+    if (len <= _Radius)
+    {
+        result = clamp(val + _Value * (_Radius - len) / _Radius, 0.0f, 255.0f);
+    }
+    _ParticlesOut[pos] = result;
+}
+

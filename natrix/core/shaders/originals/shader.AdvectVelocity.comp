@@ -1,0 +1,53 @@
+
+#include "bgfx_compute.sh"
+
+uniform uvec2 _Size;
+
+BUFFER_RO(_VelocityIn, vec2, 0);
+
+BUFFER_WR(_VelocityOut, vec2, 1);
+
+BUFFER_RO(_Obstacles, vec2, 2);
+
+uniform float _ElapsedTime;
+
+uniform float _Speed;
+
+uniform float _Dissipation;
+
+#define GROUP_SIZE 512
+
+NUM_THREADS(GROUP_SIZE, 1, 1)
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    vec2 obstacle = _Obstacles[pos];
+    
+    if (obstacle.x > 0.0f || obstacle.y > 0.0f)
+    {
+        _VelocityOut[pos] = vec2(0, 0);
+    }
+    else
+    {
+        vec2 vel = _VelocityIn[pos];
+        vec2 final_pos = vec2(float(gl_GlobalInvocationID.x) - vel.x * _ElapsedTime * _Speed, float(gl_GlobalInvocationID.y) - vel.y * _ElapsedTime * _Speed);
+        ivec2 zero = ivec2(0, 0);
+        ivec2 SizeBounds = ivec2(_Size.x - 1u, _Size.y - 1u);
+        ivec2 top_right = ivec2(clamp(ceil(final_pos), vec2(zero), vec2(SizeBounds)));
+        ivec2 bottom_left = ivec2(clamp(floor(final_pos), vec2(zero), vec2(SizeBounds)));
+        vec2 delta = final_pos - vec2(bottom_left);
+        vec2 lt = _VelocityIn[uint(top_right.y) * _Size.x + uint(bottom_left.x)];
+        vec2 rt = _VelocityIn[uint(top_right.y) * _Size.x + uint(top_right.x)];
+        vec2 lb = _VelocityIn[uint(bottom_left.y) * _Size.x + uint(bottom_left.x)];
+        vec2 rb = _VelocityIn[uint(bottom_left.y) * _Size.x + uint(top_right.x)];
+        vec2 h1 = mix(lt, rt, vec2(delta.x));
+        vec2 h2 = mix(lb, rb, vec2(delta.x));
+        _VelocityOut[pos] = clamp(mix(h2, h1, vec2(delta.y)) * _Dissipation, vec2(-1.0, -1.0), vec2(1.0, 1.0));
+    }
+}
+

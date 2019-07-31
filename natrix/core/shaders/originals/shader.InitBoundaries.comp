@@ -1,0 +1,35 @@
+
+#include "bgfx_compute.sh"
+
+uniform uvec2 _Size;
+
+BUFFER_WR(_VelocityIn, vec2, 0);
+
+#define GROUP_SIZE 512
+
+NUM_THREADS(GROUP_SIZE, 1, 1)
+void main()
+{
+    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    {
+        return;
+    }
+    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
+    if (gl_GlobalInvocationID.x == 0u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+    else if (gl_GlobalInvocationID.x == _Size.x - 1u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+    else if (gl_GlobalInvocationID.y == 0u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+    else if (gl_GlobalInvocationID.y == _Size.y - 1u)
+    {
+        _VelocityIn[pos] = vec2(0.0, 0.0);
+    }
+}
+
