@@ -1,13 +1,13 @@
 
 #include "bgfx_compute.sh"
 
-uniform uvec2 _Size;
+uniform vec4 _Size;
 
-BUFFER_RO(_VelocityIn, vec2, 0);
+BUFFER_RO(_VelocityIn, vec4, 0);
 
-BUFFER_WR(_Vorticity, vec2, 1);
+BUFFER_WR(_Vorticity, vec4, 1);
 
-uvec4 GetNeighbours(ivec2 pos, ivec2 size)
+uvec4 GetNeighbours(vec4 pos, vec4 size)
 {
     uvec4 result;
     int maxX = size.x - 1;
@@ -29,11 +29,11 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
-    vec2 vL = _VelocityIn[n.x];
-    vec2 vR = _VelocityIn[n.y];
-    vec2 vB = _VelocityIn[n.z];
-    vec2 vT = _VelocityIn[n.w];
-    _Vorticity[pos] = 0.5f * ((vR.y - vL.y) - (vT.x - vB.x));
+    uvec4 n = GetNeighbours(vec4(gl_GlobalInvocationID.xy, 0, 0), _Size);
+    vec4 vL = _VelocityIn[n.x];
+    vec4 vR = _VelocityIn[n.y];
+    vec4 vB = _VelocityIn[n.z];
+    vec4 vT = _VelocityIn[n.w];
+    _Vorticity[pos] = vec4(0.5f * ((vR.y - vL.y) - (vT.x - vB.x)), 0.0f, 0.0f, 0.0f);
 }
 

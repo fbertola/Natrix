@@ -7,11 +7,11 @@ BUFFER_WR(_ParticlesOut, float, 1);
 
 uniform float _Radius;
 
-uniform vec2 _Position;
+uniform vec4 _Position;
 
 uniform float _Value;
 
-uniform uvec2 _ParticleSize;
+uniform vec2 _ParticleSize;
 
 #define GROUP_SIZE 512
 

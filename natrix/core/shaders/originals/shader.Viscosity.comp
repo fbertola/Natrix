@@ -1,18 +1,18 @@
 
 #include "bgfx_compute.sh"
 
-uniform uvec2 _Size;
+uniform vec4 _Size;
 
-BUFFER_RO(_VelocityIn, vec2, 0);
+BUFFER_RO(_VelocityIn, vec4, 0);
 
-BUFFER_WR(_VelocityOut, vec2, 1);
+BUFFER_WR(_VelocityOut, vec4, 1);
 
-uniform float _Alpha;
+uniform vec4 _Alpha;
 
-uniform float _rBeta;
+uniform vec4 _rBeta;
 
 
-uvec4 GetNeighbours(ivec2 pos, ivec2 size)
+uvec4 GetNeighbours(vec4 pos, vec4 size)
 {
     uvec4 result;
     int maxX = size.x - 1;
@@ -34,12 +34,12 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
-    vec2 x1 = _VelocityIn[n.x];
-    vec2 x2 = _VelocityIn[n.y];
-    vec2 y1 = _VelocityIn[n.z];
-    vec2 y2 = _VelocityIn[n.w];
-    vec2 b = _VelocityIn[pos];
-    _VelocityOut[pos] = (x1 + x2 + y1 + y2 + b * _Alpha) * _rBeta;
+    uvec4 n = GetNeighbours(vec4(gl_GlobalInvocationID.xy, 0, 0), _Size);
+    vec4 x1 = _VelocityIn[n.x];
+    vec4 x2 = _VelocityIn[n.y];
+    vec4 y1 = _VelocityIn[n.z];
+    vec4 y2 = _VelocityIn[n.w];
+    vec4 b = _VelocityIn[pos];
+    _VelocityOut[pos] = (x1 + x2 + y1 + y2 + b * _Alpha.x) * _rBeta.x;
 }
 

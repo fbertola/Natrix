@@ -1,18 +1,18 @@
 
 #include "bgfx_compute.sh"
 
-uniform uvec2 _Size;
+uniform vec4 _Size;
 
-BUFFER_RO(_VelocityIn, vec2, 0);
+BUFFER_RO(_VelocityIn, vec4, 0);
 
-BUFFER_WR(_VelocityOut, vec2, 1);
+BUFFER_WR(_VelocityOut, vec4, 1);
 
-BUFFER_RO(_Obstacles, vec2, 2);
+BUFFER_RO(_Obstacles, vec4, 2);
 
-BUFFER_RO(_PressureIn, float, 3);
+BUFFER_RO(_PressureIn, vec4, 3);
 
 
-uvec4 GetNeighbours(ivec2 pos, ivec2 size)
+uvec4 GetNeighbours(vec4 pos, vec4 size)
 {
     uvec4 result;
     int maxX = size.x - 1;
@@ -33,17 +33,17 @@ void main()
     {
         return;
     }
-    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    uvec4 n = GetNeighbours(vec4(gl_GlobalInvocationID.xy, 0, 0), _Size);
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    float x1 = _PressureIn[n.x];
-    float x2 = _PressureIn[n.y];
-    float y1 = _PressureIn[n.z];
-    float y2 = _PressureIn[n.w];
-    float p = _PressureIn[pos];
-    vec2 obsL = _Obstacles[n.x];
-    vec2 obsR = _Obstacles[n.y];
-    vec2 obsB = _Obstacles[n.z];
-    vec2 obsT = _Obstacles[n.w];
+    vec4 x1 = _PressureIn[n.x];
+    vec4 x2 = _PressureIn[n.y];
+    vec4 y1 = _PressureIn[n.z];
+    vec4 y2 = _PressureIn[n.w];
+    vec4 p = _PressureIn[pos];
+    vec4 obsL = _Obstacles[n.x];
+    vec4 obsR = _Obstacles[n.y];
+    vec4 obsB = _Obstacles[n.z];
+    vec4 obsT = _Obstacles[n.w];
     if (obsL.x > 0.0f || obsL.y > 0.0f)
         x1 = p;
     if (obsR.x > 0.0f || obsR.y > 0.0f)
@@ -52,9 +52,9 @@ void main()
         y1 = p;
     if (obsT.x > 0.0f || obsT.y > 0.0f)
         y2 = p;
-    vec2 velocity = _VelocityIn[pos];
-    velocity.x -= 0.5f * (x2 - x1);
-    velocity.y -= 0.5f * (y2 - y1);
+    vec4 velocity = _VelocityIn[pos];
+    velocity.x -= 0.5f * (x2.x - x1.x);
+    velocity.y -= 0.5f * (y2.x - y1.x);
     _VelocityOut[pos] = velocity;
 }
 

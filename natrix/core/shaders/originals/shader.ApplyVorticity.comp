@@ -1,19 +1,19 @@
 
 #include "bgfx_compute.sh"
 
-uniform uvec2 _Size;
+uniform vec4 _Size;
 
-BUFFER_RO(_VelocityIn, vec2, 0);
+BUFFER_RO(_VelocityIn, vec4, 0);
 
-BUFFER_WR(_VelocityOut, vec2, 1);
+BUFFER_WR(_VelocityOut, vec4, 1);
 
-BUFFER_RO(_Vorticity, float, 2);
+BUFFER_RO(_Vorticity, vec4, 2);
 
-uniform float _ElapsedTime;
+uniform vec4 _ElapsedTime;
 
-uniform float _VorticityScale;
+uniform vec4 _VorticityScale;
 
-uvec4 GetNeighbours(ivec2 pos, ivec2 size)
+uvec4 GetNeighbours(vec4 pos, vec4 size)
 {
     uvec4 result;
     int maxX = size.x - 1;
@@ -35,18 +35,18 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
-    float vL = _Vorticity[n.x];
-    float vR = _Vorticity[n.y];
-    float vB = _Vorticity[n.z];
-    float vT = _Vorticity[n.w];
-    float vC = _Vorticity[pos];
-    vec2 force = 0.5f * vec2(abs(vT) - abs(vB), abs(vR) - abs(vL));
+    uvec4 n = GetNeighbours(vec4(gl_GlobalInvocationID.xy, 0, 0), _Size);
+    vec4 vL = _Vorticity[n.x];
+    vec4 vR = _Vorticity[n.y];
+    vec4 vB = _Vorticity[n.z];
+    vec4 vT = _Vorticity[n.w];
+    vec4 vC = _Vorticity[pos];
+    vec2 force = 0.5f * vec2(abs(vT.x) - abs(vB.x), abs(vR.x) - abs(vL.x));
     float EPSILON = 2.4414e-4f;
     float magSqr = max(EPSILON, dot(force, force));
     force = force * inversesqrt(magSqr);
-    force *= _VorticityScale * vC * vec2(1, -1);
-    vec2 final_force = force * _ElapsedTime;
-    _VelocityOut[pos] = _VelocityIn[pos] + vec2(final_force.x, final_force.y);
+    force *= _VorticityScale.x * vC * vec2(1, -1);
+    vec2 final_force = force * _ElapsedTime.x;
+    _VelocityOut[pos] = _VelocityIn[pos] + vec4(final_force.x, final_force.y, 0.0f, 0.0f);
 }
 

@@ -1,9 +1,9 @@
 
 #include "bgfx_compute.sh"
 
-uniform uvec2 _Size;
+uniform vec4 _Size;
 
-BUFFER_WR(_Buffer, vec2, 0);
+BUFFER_WR(_Buffer, vec4, 0);
 
 #define GROUP_SIZE 512
 
@@ -15,6 +15,6 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    _Buffer[pos].x = 0.0f;
+    _Buffer[pos] = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
