@@ -1,33 +1,20 @@
 
 #include "bgfx_compute.sh"
+#include "constants.sh"
 
-uniform vec4 _Size;
+uniform vec2 _Size;
 
-BUFFER_RO(_Obstacles, vec4, 0);
+BUFFER_RO(_Obstacles, vec2, 7);
 
-BUFFER_RO(_Divergence, vec4, 1);
+BUFFER_RO(_Divergence, float, 6);
 
-BUFFER_RO(_PressureIn, vec4, 2);
+BUFFER_RO(_PressureIn, vec2, 3);
 
-BUFFER_WR(_PressureOut, vec4, 3);
+BUFFER_WR(_PressureOut, vec2, 4);
 
+#include "common.sh"
 
-uvec4 GetNeighbours(vec4 pos, vec4 size)
-{
-    uvec4 result;
-    int maxX = size.x - 1;
-    int maxY = size.y - 1;
-    result.x = uint(pos.y) * _Size.x + uint(clamp(pos.x - 1, 0, maxX));
-    result.y = uint(pos.y) * _Size.x + uint(clamp(pos.x + 1, 0, maxX));
-    result.z = uint(clamp(pos.y - 1, 0, maxY) * size.x + pos.x);
-    result.w = uint(clamp(pos.y + 1, 0, maxY) * size.x + pos.x);
-    return result;
-}
-
-
-#define GROUP_SIZE 512
-
-NUM_THREADS(GROUP_SIZE, 1, 1)
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
@@ -36,17 +23,17 @@ void main()
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
     float rbeta = 0.25f;
-    uvec4 n = GetNeighbours(vec4(gl_GlobalInvocationID.xy, 0, 0), _Size);
-    vec4 p = _PressureIn[pos];
-    vec4 obsL = _Obstacles[n.x];
-    vec4 obsR = _Obstacles[n.y];
-    vec4 obsB = _Obstacles[n.z];
-    vec4 obsT = _Obstacles[n.w];
-    vec4 x1 = (obsL.x > 0.0f || obsL.y > 0.0f) ? p : _PressureIn[n.x];
-    vec4 x2 = (obsR.x > 0.0f || obsR.y > 0.0f) ? p : _PressureIn[n.y];
-    vec4 y1 = (obsB.x > 0.0f || obsB.y > 0.0f) ? p : _PressureIn[n.z];
-    vec4 y2 = (obsT.x > 0.0f || obsT.y > 0.0f) ? p : _PressureIn[n.w];
-    vec4 b = _Divergence[pos];
+    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    float p = _PressureIn[pos];
+    vec2 obsL = _Obstacles[n.x];
+    vec2 obsR = _Obstacles[n.y];
+    vec2 obsB = _Obstacles[n.z];
+    vec2 obsT = _Obstacles[n.w];
+    float x1 = (obsL.x > 0.0f || obsL.y > 0.0f) ? p : _PressureIn[n.x];
+    float x2 = (obsR.x > 0.0f || obsR.y > 0.0f) ? p : _PressureIn[n.y];
+    float y1 = (obsB.x > 0.0f || obsB.y > 0.0f) ? p : _PressureIn[n.z];
+    float y2 = (obsT.x > 0.0f || obsT.y > 0.0f) ? p : _PressureIn[n.w];
+    float b = _Divergence[pos];
     _PressureOut[pos] = (x1 + x2 + y1 + y2 - b) * rbeta;
 }
 

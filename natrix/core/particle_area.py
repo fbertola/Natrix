@@ -1,15 +1,18 @@
 from math import ceil
 
 import numpy as np
-from moderngl import Context
 
+from bgfx import as_void_ptr, bgfx, ShaderType, load_shader
 from natrix.core.common.constants import TemplateConstants
-from natrix.core.utils.shaders_utils import read_shader_source, create_point_buffer
+from natrix.core.utils.shaders_utils import read_shader_source, create_buffer
+from pathlib import Path
+
+root_path = Path(__file__).parent / "shaders" / "originals"
 
 
 class ParticleArea:
-    READ = 0
-    WRITE = 1
+    PARTICLES_IN = 0
+    PARTICLES_OUT = 1
 
     _width = 512
     _height = 512
@@ -18,11 +21,13 @@ class ParticleArea:
     _speed = 500.0
     _dissipation = 1.0
 
-    def __init__(self, context: Context, width=512, height=512):
-        self.context = context
+    def __init__(self, width: int, height: int, vertex_layout: bgfx.VertexLayout):
+        self.vertex_layout = vertex_layout
 
         self._width = width
         self._height = height
+
+        self._create_uniforms()
 
         self._load_compute_kernels()
         self._set_size()
@@ -51,30 +56,33 @@ class ParticleArea:
         else:
             raise ValueError("'Dissipation' should be grater than zero")
 
-    @property
-    def particles(self):
-        if not self._particles_buffer[self.READ]:
-            raise RuntimeError("Particles buffer is empty")
-
-        return np.frombuffer(self._particles_buffer[self.READ].read(), dtype=np.float32)
-
     def add_particles(self, position: tuple, radius: float, strength: float):
-        self._add_particles_kernel["_Position"].value = position
-        self._add_particles_kernel["_Value"].value = strength
-        self._add_particles_kernel["_Radius"].value = radius
-        self._add_particles_kernel.run(self._num_groups_x, self._num_groups_y, 1)
+        self._init_compute_kernels()
+        bgfx.setUniform(self.position_uniform,
+                        as_void_ptr(np.array([position[0], position[1], 0.0, 0.0]).astype(np.float32).tobytes()))
+        bgfx.setUniform(self.value_uniform,
+                        as_void_ptr(np.array([strength, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()))
+        bgfx.setUniform(self.radius_uniform,
+                        as_void_ptr(np.array([radius, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()))
+
+        bgfx.dispatch(0, self._add_particles_kernel, self._num_groups_x, self._num_groups_x, 1)
         self._flip_buffer()
 
     def update(self, time_delta: float):
-        self._advect_particles_kernel["_Dissipation"].value = self.dissipation
-        self._advect_particles_kernel["_ElapsedTime"].value = time_delta
-        self._advect_particles_kernel["_Speed"].value = self.speed
-        self._advect_particles_kernel.run(self._num_groups_x, self._num_groups_y, 1)
+        self._init_compute_kernels()
+        bgfx.setUniform(self.dissipation_uniform,
+                        as_void_ptr(np.array([self.dissipation, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()))
+        bgfx.setUniform(self.elapsed_time_uniform,
+                        as_void_ptr(np.array([time_delta, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()))
+        bgfx.setUniform(self.speed_uniform,
+                        as_void_ptr(np.array([self.speed, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()))
+
+        bgfx.dispatch(0, self._advect_particles_kernel, self._num_groups_x, self._num_groups_y, 1)
         self._flip_buffer()
 
     def _set_size(self):
-        particle_size = (self._width, self._height)
-        velocity_size = (self._width, self._height)
+        self._particle_size = (self._width, self._height)
+        self._velocity_size = (self._width, self._height)
         group_size_x = TemplateConstants.NUM_THREADS.value
         group_size_y = TemplateConstants.NUM_THREADS.value
 
@@ -82,44 +90,60 @@ class ParticleArea:
         self._num_groups_x = int(ceil(float(self._width) / float(group_size_x)))
         self._num_groups_y = int(ceil(float(self._height) / float(group_size_y)))
 
-        self._add_particles_kernel["_ParticleSize"].value = particle_size
-        self._advect_particles_kernel["_ParticleSize"].value = particle_size
-        self._advect_particles_kernel["_VelocitySize"].value = velocity_size
+    def _create_uniforms(self):
+        self.particle_size_uniform = bgfx.createUniform("_ParticleSize", bgfx.UniformType.Vec4)
+        self.position_uniform = bgfx.createUniform("_Position", bgfx.UniformType.Vec4)
+        self.value_uniform = bgfx.createUniform("_Value", bgfx.UniformType.Vec4)
+        self.radius_uniform = bgfx.createUniform("_Radius", bgfx.UniformType.Vec4)
+        self.dissipation_uniform = bgfx.createUniform("_Dissipation", bgfx.UniformType.Vec4)
+        self.elapsed_time_uniform = bgfx.createUniform("_ElapsedTime", bgfx.UniformType.Vec4)
+        self.speed_uniform = bgfx.createUniform("_Speed", bgfx.UniformType.Vec4)
+        self.velocity_size_uniform = bgfx.createUniform("_VelocitySize", bgfx.UniformType.Vec4)
 
     def _init_compute_kernels(self):
-        self._particles_buffer[self.READ].bind_to_storage_buffer(
-            TemplateConstants.PARTICLES_IN.value
-        )
-        self._particles_buffer[self.WRITE].bind_to_storage_buffer(
-            TemplateConstants.PARTICLES_OUT.value
-        )
+        bgfx.setUniform(self.particle_size_uniform,
+                        as_void_ptr(np.array([self._particle_size[0], self._particle_size[1], 0.0, 0.0]).astype(np.float32).tobytes()))
+        bgfx.setUniform(self.velocity_size_uniform,
+                        as_void_ptr(np.array([self._velocity_size[0], self._velocity_size[1], 0.0, 0.0]).astype(np.float32).tobytes()))
+
+        bgfx.setBuffer(TemplateConstants.PARTICLES_IN.value, self._particles_buffer[self.PARTICLES_IN],
+                       bgfx.Access.Write)
+        bgfx.setBuffer(TemplateConstants.PARTICLES_OUT.value, self._particles_buffer[self.PARTICLES_OUT],
+                       bgfx.Access.Write)
 
     def _create_buffers(self):
         self._particles_buffer = [
-            create_point_buffer(self.context, self._num_cells),
-            create_point_buffer(self.context, self._num_cells),
+            create_buffer(self._num_cells, self.vertex_layout),
+            create_buffer(self._num_cells, self.vertex_layout),
         ]
 
     def _load_compute_kernels(self):
-        self._add_particles_kernel = self.context.compute_shader(
-            read_shader_source("shader.AddParticle.comp")
-        )
-        self._advect_particles_kernel = self.context.compute_shader(
-            read_shader_source("shader.AdvectParticle.comp")
-        )
+        self._add_particles_kernel = bgfx.createProgram(load_shader("shader.AddParticle.comp", ShaderType.COMPUTE, root_path=root_path), True)
+        self._advect_particles_kernel = bgfx.createProgram(load_shader("shader.AdvectParticle.comp", ShaderType.COMPUTE, root_path=root_path), True)
 
     def _flip_buffer(self):
-        tmp = self.READ
-        self.READ = self.WRITE
-        self.WRITE = tmp
+        tmp = self.PARTICLES_IN
+        self.PARTICLES_IN = self.PARTICLES_OUT
+        self.PARTICLES_OUT = tmp
 
-        self._particles_buffer[self.READ].bind_to_storage_buffer(
-            TemplateConstants.PARTICLES_IN.value
-        )
-        self._particles_buffer[self.WRITE].bind_to_storage_buffer(
-            TemplateConstants.PARTICLES_OUT.value
-        )
+        bgfx.setBuffer(TemplateConstants.PARTICLES_IN.value, self._particles_buffer[self.PARTICLES_IN], bgfx.Access.Read)
+        bgfx.setBuffer(TemplateConstants.PARTICLES_OUT.value, self._particles_buffer[self.PARTICLES_OUT], bgfx.Access.Write)
 
-    def __del__(self):
-        self._particles_buffer[0].release()
-        self._particles_buffer[1].release()
+    def destroy(self):
+        # Destroy uniforms
+        bgfx.destroy(self.particle_size_uniform)
+        bgfx.destroy(self.position_uniform)
+        bgfx.destroy(self.value_uniform)
+        bgfx.destroy(self.radius_uniform)
+        bgfx.destroy(self.dissipation_uniform)
+        bgfx.destroy(self.elapsed_time_uniform)
+        bgfx.destroy(self.speed_uniform)
+        bgfx.destroy(self.velocity_size_uniform)
+
+        # Destroy buffers
+        bgfx.destroy(self._particles_buffer[0])
+        bgfx.destroy(self._particles_buffer[1])
+
+        # Destroy compute shaders
+        bgfx.destroy(self._add_particles_kernel)
+        bgfx.destroy(self._advect_particles_kernel)

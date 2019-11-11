@@ -1,21 +1,22 @@
 
 #include "bgfx_compute.sh"
+#include "constants.sh"
 
-uniform vec4 _Size;
+uniform vec2 _Size;
 
-BUFFER_RO(_VelocityIn, vec4, 0);
+BUFFER_RO(_VelocityIn, vec2, 1);
 
-BUFFER_WR(_VelocityOut, vec4, 1);
+BUFFER_WR(_VelocityOut, vec2, 2);
 
-uniform vec4 _Radius;
+uniform float _Radius;
 
-uniform vec4 _Position;
+uniform vec2 _Position;
 
-uniform vec4 _Value;
+uniform vec2 _Value;
 
-#define GROUP_SIZE 512
+#include "common.sh"
 
-NUM_THREADS(GROUP_SIZE, 1, 1)
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
@@ -23,14 +24,14 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    vec4 splat_pos = _Position * vec4(_Size);
-    vec4 val = _VelocityIn[pos];
-    vec4 result = val;
-    float len = distance(splat_pos, vec4(gl_GlobalInvocationID.xy, 0, 0));
-    if (len <= _Radius.x)
+    vec2 splat_pos = _Position * vec2(_Size);
+    vec2 val = _VelocityIn[pos];
+    vec2 result = val;
+    float len = distance(splat_pos, vec2(gl_GlobalInvocationID));
+    if (len <= _Radius)
     {
         result = val + _Value * (_Radius - len) / _Radius;
     }
-    _VelocityOut[pos] = clamp(result, vec4(-1.0, -1.0, 0, 0), vec4(1.0, 1.0, 0, 0));
+    _VelocityOut[pos] = clamp(result, vec2(-1.0, -1.0), vec2(1.0, 1.0));
 }
 

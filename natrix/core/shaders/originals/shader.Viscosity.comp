@@ -1,32 +1,20 @@
 
 #include "bgfx_compute.sh"
+#include "constants.sh"
 
-uniform vec4 _Size;
+uniform vec2 _Size;
 
-BUFFER_RO(_VelocityIn, vec4, 0);
+BUFFER_RO(_VelocityIn, vec2, 1);
 
-BUFFER_WR(_VelocityOut, vec4, 1);
+BUFFER_WR(_VelocityOut, vec2, 2);
 
-uniform vec4 _Alpha;
+uniform float _Alpha;
 
-uniform vec4 _rBeta;
+uniform float _rBeta;
 
+#include "common.sh"
 
-uvec4 GetNeighbours(vec4 pos, vec4 size)
-{
-    uvec4 result;
-    int maxX = size.x - 1;
-    int maxY = size.y - 1;
-    result.x = uint(pos.y) * _Size.x + uint(clamp(pos.x - 1, 0, maxX));
-    result.y = uint(pos.y) * _Size.x + uint(clamp(pos.x + 1, 0, maxX));
-    result.z = uint(clamp(pos.y - 1, 0, maxY) * size.x + pos.x);
-    result.w = uint(clamp(pos.y + 1, 0, maxY) * size.x + pos.x);
-    return result;
-}
-
-#define GROUP_SIZE 512
-
-NUM_THREADS(GROUP_SIZE, 1, 1)
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
@@ -34,12 +22,12 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    uvec4 n = GetNeighbours(vec4(gl_GlobalInvocationID.xy, 0, 0), _Size);
-    vec4 x1 = _VelocityIn[n.x];
-    vec4 x2 = _VelocityIn[n.y];
-    vec4 y1 = _VelocityIn[n.z];
-    vec4 y2 = _VelocityIn[n.w];
-    vec4 b = _VelocityIn[pos];
-    _VelocityOut[pos] = (x1 + x2 + y1 + y2 + b * _Alpha.x) * _rBeta.x;
+    uvec4 n = GetNeighbours(ivec2(gl_GlobalInvocationID.xy), ivec2(_Size));
+    vec2 x1 = _VelocityIn[n.x];
+    vec2 x2 = _VelocityIn[n.y];
+    vec2 y1 = _VelocityIn[n.z];
+    vec2 y2 = _VelocityIn[n.w];
+    vec2 b = _VelocityIn[pos];
+    _VelocityOut[pos] = (x1 + x2 + y1 + y2 + b * _Alpha) * _rBeta;
 }
 

@@ -1,13 +1,12 @@
 
 #include "bgfx_compute.sh"
+#include "constants.sh"
 
-uniform vec4 _Size;
+uniform vec2 _Size;
 
-BUFFER_WR(_Buffer, vec4, 0);
+BUFFER_WR(_Buffer, float, 8);
 
-#define GROUP_SIZE 512
-
-NUM_THREADS(GROUP_SIZE, 1, 1)
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
@@ -15,6 +14,6 @@ void main()
         return;
     }
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    _Buffer[pos] = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+    _Buffer[pos] = 0.0f;
 }
 

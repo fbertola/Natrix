@@ -1,9 +1,10 @@
-#version 310 es
+$input a_position, a_texcoord0
+$output v_texcoord0
 
-in vec2 pos;
-out vec2 texCoord;
+#include <bgfx_shader.sh>
 
-void main() {
-    texCoord = pos*0.5f + 0.5f;
-    gl_Position = vec4(pos, 0.0, 1.0);
+void main()
+{
+    gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0) );
+    v_texcoord0 = a_texcoord0;
 }
