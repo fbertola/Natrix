@@ -1,6 +1,10 @@
+import ctypes
 from array import array
 
-from bgfx import bgfx, ImGui, ImVec2, ImVec4
+from bgfx import bgfx, ImGui, ImVec2, ImVec4, as_void_ptr
+
+from natrix.core.fluid_simulator import FluidSimulator
+from natrix.core.particle_area import ParticleArea
 
 
 class SampleData:
@@ -22,12 +26,12 @@ class SampleData:
 
     def push_sample(self, value: float):
         self.m_values[self.m_offset] = value
-        self.m_offset = (self.m_offset + 1) % 100
 
         min_val = float("inf")
         max_val = float("-inf")
         avg_val = 0.0
 
+        # FIXME: da rivedere
         for val in self.m_values:
             min_val = min(min_val, val)
             max_val = max(max_val, val)
@@ -36,6 +40,8 @@ class SampleData:
         self.m_min = min_val
         self.m_max = max_val
         self.m_avg = avg_val / 100.0
+
+        self.m_offset = (self.m_offset + 1) % 100
 
 
 def bar(width, max_width, height, color):
@@ -70,6 +76,7 @@ def bar(width, max_width, height, color):
 
 
 s_resourceColor = ImVec4(0.5, 0.5, 0.5, 1.0)
+s_frame_time = SampleData()
 
 
 def resource_bar(name, tooltip, num, _max, max_width, height):
@@ -92,15 +99,14 @@ def resource_bar(name, tooltip, num, _max, max_width, height):
         ImGui.SetTooltip(f"{tooltip} {(percentage * 100.0):5.2f}%")
 
 
-def show_example_dialog():
-    ImGui.SetNextWindowPos(ImVec2(10.0, 50.0), 1 << 2)
-    ImGui.SetNextWindowSize(ImVec2(300.0, 500.0), 1 << 2)
+def show_properties_dialog(fluid_simulator: FluidSimulator, particle_system: ParticleArea):
+    ImGui.SetNextWindowPos(ImVec2(20.0, 300.0), 1 << 2)
+    ImGui.SetNextWindowSize(ImVec2(300.0, 400.0), 1 << 2)
 
-    ImGui.Begin("\uf080 Statistics")
-    ImGui.TextWrapped("Your program's statistics")
+    ImGui.Begin("\uf013 Properties")
+    ImGui.TextWrapped("Simulation performances")
+
     ImGui.Separator()
-
-    s_frame_time = SampleData()
 
     stats = bgfx.getStats()
     to_ms_cpu = 1000.0 / stats.cpuTimerFreq
@@ -126,106 +132,53 @@ def show_example_dialog():
     ImGui.PopStyleColor()
 
     ImGui.Text(
-        f"Submit CPU {(stats.cpuTimeEnd - stats.cpuTimeBegin) * to_ms_cpu:.3f}, GPU {(stats.gpuTimeEnd - stats.gpuTimeBegin) * to_ms_gpu:.3f} (L: {stats.maxGpuLatency})"
+        f"Submit CPU {(stats.cpuTimeEnd - stats.cpuTimeBegin) * to_ms_cpu:3.3f}, GPU {(stats.gpuTimeEnd - stats.gpuTimeBegin) * to_ms_gpu:3.3f} (L: {stats.maxGpuLatency})"
     )
 
     if stats.gpuMemoryMax > 0:
         ImGui.Text(f"GPU mem: {stats.gpuMemoryUsed} / {stats.gpuMemoryMax}")
 
-    if ImGui.CollapsingHeader("\uf12e Resources", 1 << 5):
-        caps = bgfx.getCaps()
-        itemHeight = ImGui.GetTextLineHeightWithSpacing()
-        maxWidth = 90.0
-        ImGui.PushFont(ImGui.Font.Mono)
-        ImGui.Text("Res: Num  / Max")
-        resource_bar(
-            "DIB",
-            "Dynamic index buffers",
-            stats.numDynamicIndexBuffers,
-            caps.limits.maxDynamicIndexBuffers,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            "DVB",
-            "Dynamic vertex buffers",
-            stats.numDynamicVertexBuffers,
-            caps.limits.maxDynamicVertexBuffers,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            " FB",
-            "Frame buffers",
-            stats.numFrameBuffers,
-            caps.limits.maxFrameBuffers,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            " IB",
-            "Index buffers",
-            stats.numIndexBuffers,
-            caps.limits.maxIndexBuffers,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            " OQ",
-            "Occlusion queries",
-            stats.numOcclusionQueries,
-            caps.limits.maxOcclusionQueries,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            "  P",
-            "Programs",
-            stats.numPrograms,
-            caps.limits.maxPrograms,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            "  S",
-            "Shaders",
-            stats.numShaders,
-            caps.limits.maxShaders,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            "  T",
-            "Textures",
-            stats.numTextures,
-            caps.limits.maxTextures,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            "  U",
-            "Uniforms",
-            stats.numUniforms,
-            caps.limits.maxUniforms,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            " VB",
-            "Vertex buffers",
-            stats.numVertexBuffers,
-            caps.limits.maxVertexBuffers,
-            maxWidth,
-            itemHeight,
-        )
-        resource_bar(
-            " VL",
-            "Vertex layouts",
-            stats.numVertexLayouts,
-            caps.limits.maxVertexLayouts,
-            maxWidth,
-            itemHeight,
-        )
-        ImGui.PopFont()
+    ImGui.Separator()
+
+    vorticity = ImGui.Float(fluid_simulator.vorticity)
+    viscosity = ImGui.Float(fluid_simulator.viscosity)
+    speed = ImGui.Float(fluid_simulator.speed)
+    iterations = ImGui.Int(fluid_simulator.iterations)
+    borders = ImGui.Bool(fluid_simulator.has_borders)
+
+    ImGui.Text("Fluid simulation parameters")
+
+    if ImGui.SliderFloat("Vorticity", vorticity, 0.0, 10.0):
+        fluid_simulator.vorticity = vorticity.value
+
+    if ImGui.SliderFloat("Viscosity", viscosity, 0.000, 1.0):
+        fluid_simulator.viscosity = viscosity.value
+
+    if ImGui.SliderFloat("Speed", speed, 1.0, 1000.0):
+        fluid_simulator.speed = speed.value
+        particle_system.speed = speed.value
+
+    if ImGui.SliderInt("Iteration", iterations, 10, 100):
+        fluid_simulator.iterations = iterations.value
+
+    if ImGui.Checkbox("Borders", borders):
+        fluid_simulator.has_borders = borders.value
+
+    ImGui.Separator()
+
+    dissipation = ImGui.Float(particle_system.dissipation)
+
+    ImGui.Text("Particles area parameters")
+
+    if ImGui.SliderFloat("Dissipation", dissipation, 0.001, 1.0):
+        particle_system.dissipation = dissipation.value
+
+    ImGui.Separator()
+
+    stop = ImGui.Bool(not fluid_simulator.simulate)
+
+    if ImGui.Checkbox("Stop", stop):
+        fluid_simulator.simulate = not stop.value
+        particle_system.simulate = not stop.value
 
     ImGui.End()

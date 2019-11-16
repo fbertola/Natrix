@@ -1,6 +1,7 @@
 import ctypes
-import time
 import sys
+import time
+
 # noinspection PyPackageRequirements
 import glfw
 
@@ -18,6 +19,8 @@ class ExampleWindow(object):
         self.width = width
         self.ctx = None
         self.window = None
+        self.fb_width = width
+        self.fb_height = height
 
     def init(self, platform_data):
         pass
@@ -26,6 +29,9 @@ class ExampleWindow(object):
         pass
 
     def update(self, dt):
+        pass
+
+    def resize(self):
         pass
 
     def get_mouse_state(self):
@@ -63,9 +69,15 @@ class ExampleWindow(object):
         glfw.init()
 
         glfw.window_hint(glfw.CLIENT_API, glfw.NO_API)
-        self.window = glfw.create_window(self.width, self.height, self.title, None, None)
-        # glfw.make_context_current(window)
-        # glfw.swap_interval(1)
+        glfw.window_hint(glfw.COCOA_RETINA_FRAMEBUFFER, glfw.TRUE)
+
+        self.window = glfw.create_window(
+            self.width, self.height, self.title, None, None
+        )
+
+        self.fb_width, self.fb_height = glfw.get_framebuffer_size(self.window)
+
+        glfw.set_window_size_callback(self.window, self._handle_window_resize)
 
         bgfx.renderFrame()
 
@@ -110,3 +122,11 @@ class ExampleWindow(object):
 
         self.shutdown()
         glfw.terminate()
+
+    def _handle_window_resize(self, window, width, height):
+        self.width = width
+        self.height = height
+
+        self.fb_width, self.fb_height = glfw.get_framebuffer_size(self.window)
+
+        self.resize()

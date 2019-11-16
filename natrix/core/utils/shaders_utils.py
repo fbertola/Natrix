@@ -1,8 +1,7 @@
 from pathlib import Path
 
-import tempfile
 import numpy as np
-from bgfx import bgfx, shaderc, as_void_ptr, BGFX_BUFFER_COMPUTE_READ_WRITE
+from bgfx import bgfx, BGFX_BUFFER_COMPUTE_READ_WRITE
 from jinja2 import Environment, FileSystemLoader
 
 from natrix.core.common.constants import TemplateConstants
@@ -32,11 +31,24 @@ def create_buffer(length: int, vertex_layout: bgfx.VertexLayout):
     data = [0.0 for _ in range(length)]
     data_bytes = np.array(data).astype(np.float32).tobytes()
 
-    return bgfx.createDynamicVertexBuffer(len(data_bytes), vertex_layout, BGFX_BUFFER_COMPUTE_READ_WRITE)
+    return bgfx.createDynamicVertexBuffer(
+        len(data_bytes), vertex_layout, BGFX_BUFFER_COMPUTE_READ_WRITE
+    )
 
 
 def create_2d_buffer(length: int, vertex_layout: bgfx.VertexLayout):
     data = [[0.0, 0.0] for _ in range(length)]
     data_bytes = np.array(data).astype(np.float32).tobytes()
 
-    return bgfx.createDynamicVertexBuffer(len(data_bytes), vertex_layout, BGFX_BUFFER_COMPUTE_READ_WRITE)
+    return bgfx.createDynamicVertexBuffer(
+        len(data_bytes), vertex_layout, BGFX_BUFFER_COMPUTE_READ_WRITE
+    )
+
+
+def create_4d_buffer(length: int, vertex_layout: bgfx.VertexLayout):
+    data = [[0.0, 0.0, 0.0, 0.0] for _ in range(length)]
+    data_bytes = np.array(data).astype(np.float32).tobytes()
+
+    return bgfx.createDynamicVertexBuffer(
+        len(data_bytes), vertex_layout, BGFX_BUFFER_COMPUTE_READ_WRITE
+    )

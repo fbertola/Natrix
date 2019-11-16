@@ -22,7 +22,7 @@ def cross(v1, v2):
     return [
         (v1y * v2z) - (v1z * v2y),
         (v1z * v2x) - (v1x * v2z),
-        (v1x * v2y) - (v1y * v2x)
+        (v1x * v2y) - (v1y * v2x),
     ]
 
 
@@ -42,10 +42,26 @@ def look_at(eye, at, up):
 
     up = np.cross(view, right)
 
-    view = (ctypes.c_float * 16)(*[right[0], up[0], view[0], 0.0,
-                                   right[1], up[1], view[1], 0.0,
-                                   right[2], up[2], view[2], 0.0,
-                                   -np.dot(right, eye), -np.dot(up, eye), -np.dot(view, eye), 1.0])
+    view = (ctypes.c_float * 16)(
+        *[
+            right[0],
+            up[0],
+            view[0],
+            0.0,
+            right[1],
+            up[1],
+            view[1],
+            0.0,
+            right[2],
+            up[2],
+            view[2],
+            0.0,
+            -np.dot(right, eye),
+            -np.dot(up, eye),
+            -np.dot(view, eye),
+            1.0,
+        ]
+    )
 
     return view
 
@@ -57,10 +73,26 @@ def proj(fov_y, aspect, near, far):
     aa = far / diff
     bb = near * aa
 
-    return (ctypes.c_float * 16)(*[width, 0.0, 0.0, 0.0,
-                                   0.0, height, 0.0, 0.0,
-                                   0.0, 0.0, aa, 1.0,
-                                   0.0, 0.0, -bb, 0.0])
+    return (ctypes.c_float * 16)(
+        *[
+            width,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            height,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            aa,
+            1.0,
+            0.0,
+            0.0,
+            -bb,
+            0.0,
+        ]
+    )
 
 
 def ortho(left, right, bottom, top, near, far):
@@ -71,10 +103,9 @@ def ortho(left, right, bottom, top, near, far):
     ee = (top + bottom) / (bottom - top)
     ff = near / (near - far)
 
-    return (ctypes.c_float * 16)(*[aa, 0.0, 0.0, 0.0,
-                                   0.0, bb, 0.0, 0.0,
-                                   0.0, 0.0, cc, 0.0,
-                                   dd, ee, ff, 1.0])
+    return (ctypes.c_float * 16)(
+        *[aa, 0.0, 0.0, 0.0, 0.0, bb, 0.0, 0.0, 0.0, 0.0, cc, 0.0, dd, ee, ff, 1.0]
+    )
 
 
 def rotate_xy(rot_x, rot_y):
@@ -82,9 +113,11 @@ def rotate_xy(rot_x, rot_y):
     sy, cy = np.sin(rot_y), np.cos(rot_y)
 
     return np.array(
-        ((cy, 0.0, sy, 0.0),
-         (sx * sy, cx, -sx * cy, 0.0),
-         (-cx * sy, sx, cx * cy, 0.0),
-         (0.0, 0.0, 0.0, 1.0)),
-        dtype=np.float32
+        (
+            (cy, 0.0, sy, 0.0),
+            (sx * sy, cx, -sx * cy, 0.0),
+            (-cx * sy, sx, cx * cy, 0.0),
+            (0.0, 0.0, 0.0, 1.0),
+        ),
+        dtype=np.float32,
     )

@@ -4,7 +4,7 @@
 
 uniform vec2 _Size;
 
-BUFFER_WR(_Buffer, float, 8);
+BUFFER_WR(_Buffer, vec2, 8);
 
 NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
