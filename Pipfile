@@ -5,14 +5,10 @@ verify_ssl = true
 
 [dev-packages]
 black = "==18.9b0"
-imageio = "*"
-pygame = "*"
-twine = "*"
-pyglet = "*"
 
 [packages]
-moderngl = "*"
 numpy = "*"
+glfw = "*"
 jinja2 = "*"
 python-decouple = "*"
 
