@@ -1,28 +1,40 @@
+import random
 from ctypes import Structure, c_float, sizeof
 from pathlib import Path
 
 import numpy as np
-from bgfx import bgfx, ImGuiExtra, BGFX_CLEAR_COLOR, BGFX_CLEAR_DEPTH, BGFX_RESET_VSYNC, BGFX_DEBUG_TEXT, as_void_ptr, \
-    ShaderType, load_shader, BGFX_STATE_WRITE_RGB, BGFX_STATE_WRITE_A, BGFX_STATE_DEFAULT, BGFX_TEXTURE_COMPUTE_WRITE, \
-    BGFX_STATE_BLEND_ALPHA, BGFX_TEXTURE_RT
+from bgfx import (
+    bgfx,
+    ImGuiExtra,
+    BGFX_CLEAR_COLOR,
+    BGFX_CLEAR_DEPTH,
+    BGFX_RESET_VSYNC,
+    BGFX_DEBUG_TEXT,
+    as_void_ptr,
+    ShaderType,
+    load_shader,
+    BGFX_STATE_WRITE_RGB,
+    BGFX_STATE_WRITE_A,
+    BGFX_STATE_DEFAULT,
+    BGFX_TEXTURE_COMPUTE_WRITE,
+    BGFX_RESET_HIDPI)
 
 from natrix.core.example_window import ExampleWindow
 from natrix.core.fluid_simulator import FluidSimulator
 from natrix.core.particle_area import ParticleArea
-from natrix.core.utils.imgui_utils import show_example_dialog
-from natrix.core.utils.matrix_utils import look_at, proj, rotate_xy
-from natrix.core.utils.shaders_utils import create_buffer
-
-import random
+from natrix.core.utils.imgui_utils import show_properties_dialog
+from natrix.core.utils.matrix_utils import look_at, proj
 
 
 class PosColorVertex(Structure):
-    _fields_ = [("m_x", c_float),
-                ("m_y", c_float),
-                ("m_z", c_float),
-                ("m_u", c_float),
-                ("m_v", c_float),
-                ("m_w", c_float), ]
+    _fields_ = [
+        ("m_x", c_float),
+        ("m_y", c_float),
+        ("m_z", c_float),
+        ("m_u", c_float),
+        ("m_v", c_float),
+        ("m_w", c_float),
+    ]
 
 
 cube_vertices = (PosColorVertex * 4)(
@@ -32,10 +44,7 @@ cube_vertices = (PosColorVertex * 4)(
     PosColorVertex(1.0, -1.0, 0.0, 1.0, -1.0, 1.0),
 )
 
-cube_indices = np.array([
-    0, 1, 2,
-    1, 2, 3,
-], dtype=np.uint16)
+cube_indices = np.array([0, 1, 2, 1, 2, 3], dtype=np.uint16)
 
 root_path = Path(__file__).parent / "shaders"
 
@@ -47,59 +56,70 @@ class Demo(ExampleWindow):
         self.init_conf = bgfx.Init()
         self.init_conf.debug = True
         self.init_conf.type = bgfx.RendererType.Metal
-        self.init_conf.resolution.width = self.width
-        self.init_conf.resolution.height = self.height
-        self.init_conf.resolution.reset = BGFX_RESET_VSYNC
+        self.init_conf.resolution.width = self.fb_width
+        self.init_conf.resolution.height = self.fb_height
+        self.init_conf.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_HIDPI
 
     def init(self, platform_data):
         self.init_conf.platformData = platform_data
-
+        # FIXME ImGui
         bgfx.init(self.init_conf)
-        bgfx.reset(self.width, self.height, BGFX_RESET_VSYNC, self.init_conf.resolution.format)
+        bgfx.reset(
+            self.fb_width, self.fb_height, BGFX_RESET_VSYNC | BGFX_RESET_HIDPI, self.init_conf.resolution.format
+        )
 
         bgfx.setDebug(BGFX_DEBUG_TEXT)
         bgfx.setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0, 0)
 
         self.vertex_layout = bgfx.VertexLayout()
-        self.vertex_layout.begin() \
-            .add(bgfx.Attrib.Position, 3, bgfx.AttribType.Float) \
-            .add(bgfx.Attrib.TexCoord0, 3, bgfx.AttribType.Float) \
-            .end()
+        self.vertex_layout.begin().add(
+            bgfx.Attrib.Position, 3, bgfx.AttribType.Float
+        ).add(bgfx.Attrib.TexCoord0, 3, bgfx.AttribType.Float).end()
 
-        self.fluid_simulator = FluidSimulator(512, 512, self.vertex_layout)
-        self.fluid_simulator.vorticity = 5.0
-        self.fluid_simulator.viscosity = 0.000000000001
+        self.fluid_simulator = FluidSimulator(self.width // 2, self.height // 2, self.vertex_layout)
+        self.fluid_simulator.vorticity = 10.0
+        self.fluid_simulator.viscosity = 0.0
+
+        self.particle_area = ParticleArea(self.fb_width, self.fb_height, self.fluid_simulator, self.vertex_layout)
+        self.particle_area.dissipation = 0.991
 
         # Create static vertex buffer
-        vb_memory = bgfx.copy(as_void_ptr(cube_vertices),
-                              sizeof(PosColorVertex) * 4)
+        vb_memory = bgfx.copy(as_void_ptr(cube_vertices), sizeof(PosColorVertex) * 4)
         self.vertex_buffer = bgfx.createVertexBuffer(vb_memory, self.vertex_layout)
 
         ib_memory = bgfx.copy(as_void_ptr(cube_indices), cube_indices.nbytes)
         self.index_buffer = bgfx.createIndexBuffer(ib_memory)
 
         self.output_texture = bgfx.createTexture2D(
-            512
-            , 512
-            , False
-            , 1
-            , bgfx.TextureFormat.RGBA32F
-            , BGFX_TEXTURE_COMPUTE_WRITE
+            self.fb_width, self.fb_height, False, 1, bgfx.TextureFormat.RGBA8, BGFX_TEXTURE_COMPUTE_WRITE
         )
 
-        self.texture_uniform = bgfx.createUniform("InputTexture", bgfx.UniformType.Sampler)
+        self.texture_uniform = bgfx.createUniform(
+            "InputTexture", bgfx.UniformType.Sampler
+        )
 
         # Create program from shaders.
         self.main_program = bgfx.createProgram(
-            load_shader("demo.VertexShader.vert", ShaderType.VERTEX, root_path=root_path),
-            load_shader("demo.FragmentShader.frag", ShaderType.FRAGMENT, root_path=root_path),
-            True)
-        self.cs_program = bgfx.createProgram(load_shader('demo.ComputeShader.comp', ShaderType.COMPUTE, root_path=root_path), True)
+            load_shader(
+                "demo.VertexShader.vert", ShaderType.VERTEX, root_path=root_path
+            ),
+            load_shader(
+                "demo.FragmentShader.frag", ShaderType.FRAGMENT, root_path=root_path
+            ),
+            True,
+        )
+        self.cs_program = bgfx.createProgram(
+            load_shader(
+                "demo.ComputeShader.comp", ShaderType.COMPUTE, root_path=root_path
+            ),
+            True,
+        )
 
-        ImGuiExtra.imguiCreate()
+        ImGuiExtra.imguiCreate(42.0)
 
     def shutdown(self):
         self.fluid_simulator.destroy()
+        self.particle_area.destroy()
 
         ImGuiExtra.imguiDestroy()
 
@@ -118,24 +138,25 @@ class Demo(ExampleWindow):
             int(mouse_x), int(mouse_y), buttons_states, 0, self.width, self.height
         )
 
-        show_example_dialog()
+        show_properties_dialog(self.fluid_simulator, self.particle_area)
 
         ImGuiExtra.imguiEndFrame()
 
-        vel_x = random.uniform(-0.08, 0.08)
-        vel_y = random.uniform(-0.01, 0.2)
+        vel_y = random.uniform(-0.08, 0.08)
+        vel_x = random.uniform(-0.01, 0.1)
+        strength = random.uniform(0.05, 0.1)
 
         at = (c_float * 3)(*[0.0, 0.0, 0.0])
         eye = (c_float * 3)(*[0.0, 0.0, 10.0])
         up = (c_float * 3)(*[0.0, 1.0, 0.0])
 
         view = look_at(eye, at, up)
-        projection = proj(15.0, self.width / self.height, 0.1, 100.0)
+        projection = proj(11.4, 1, 0.1, 100.0)
 
-        bgfx.setViewRect(
-            0, 0, 0, self.width, self.height
-        )
+        bgfx.setViewRect(0, 0, 0, self.fb_width, self.fb_height)
         bgfx.touch(0)
+
+        bgfx.dbgTextClear(0, False)
 
         bgfx.setViewTransform(0, as_void_ptr(view), as_void_ptr(projection))
 
@@ -146,16 +167,26 @@ class Demo(ExampleWindow):
         bgfx.setState(BGFX_STATE_DEFAULT)
         bgfx.setImage(0, self.output_texture, 0, bgfx.Access.Write)
 
-        self.fluid_simulator.add_circle_obstacle((0.5, 0.5), 30)
-        self.fluid_simulator.add_velocity((0.5, 0.1), (vel_x, vel_y), 44.0)
+        self.fluid_simulator.add_velocity((0.12, 0.5), (vel_x, vel_y), 34.0)
         self.fluid_simulator.update(dt)
 
-        bgfx.dispatch(0, self.cs_program, 512 // 16, 512 // 16)
+        self.particle_area.add_particles((0.1, 0.5), 220.0, strength)
+        self.particle_area.update(dt)
+
+        bgfx.dispatch(0, self.cs_program, self.fb_width // 16, self.fb_height // 16)
         bgfx.setTexture(0, self.texture_uniform, self.output_texture)
-        bgfx.setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A )
+        bgfx.setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A)
         bgfx.submit(0, self.main_program, 0, False)
 
+        stats = bgfx.getStats()
+
+        bgfx.dbgTextPrintf(1, 1, 0x0F,
+                           "Color can be changed with ANSI code too.", )
+
         bgfx.frame()
+
+    def resize(self):
+        bgfx.reset(self.fb_width, self.fb_height, BGFX_RESET_VSYNC | BGFX_RESET_HIDPI, self.init_conf.resolution.format)
 
 
 if __name__ == "__main__":

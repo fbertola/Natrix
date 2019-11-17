@@ -1,20 +1,21 @@
 
 #include "bgfx_compute.sh"
 
-IMAGE2D_WR(InputTexture, rgba32f, 0);
-BUFFER_RW(_VelocityIn, vec2, 1);
+IMAGE2D_WR(InputTexture, rgba8, 0);
+BUFFER_RO(_Particles, float, 9);
 
-uniform vec2 _Size;
+uniform vec2 _ParticleSize;
 
 NUM_THREADS(16, 16, 1)
 void main()
 {
-    if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
+    if (gl_GlobalInvocationID.x >= _ParticleSize.x || gl_GlobalInvocationID.y >= _ParticleSize.y)
     {
         return;
     }
 
 	ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
-    uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
-    imageStore(InputTexture, coord, vec4(_VelocityIn[pos].x, _VelocityIn[pos].y, 0 , 1));
+    uint pos = gl_GlobalInvocationID.y * _ParticleSize.x + gl_GlobalInvocationID.x;
+    float particle_value = _Particles[pos];
+    imageStore(InputTexture, coord, vec4(particle_value, particle_value, particle_value, particle_value));
 }
