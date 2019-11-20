@@ -21,6 +21,7 @@ class ExampleWindow(object):
         self.window = None
         self.fb_width = width
         self.fb_height = height
+        self.hidpi = False
 
     def init(self, platform_data):
         pass
@@ -36,6 +37,10 @@ class ExampleWindow(object):
 
     def get_mouse_state(self):
         mouse_x, mouse_y = glfw.get_cursor_pos(self.window)
+
+        if self.hidpi:
+            mouse_x, mouse_y = mouse_x * 2, mouse_y * 2
+
         state_mbl = glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT)
         state_mbm = glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_MIDDLE)
         state_mbr = glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_RIGHT)
@@ -77,9 +82,9 @@ class ExampleWindow(object):
 
         self.fb_width, self.fb_height = glfw.get_framebuffer_size(self.window)
 
-        glfw.set_window_size_callback(self.window, self._handle_window_resize)
+        self.hidpi = self.fb_width != self.width or self.fb_height != self.height
 
-        bgfx.renderFrame()
+        glfw.set_window_size_callback(self.window, self._handle_window_resize)
 
         handle, display = None, None
 
@@ -123,10 +128,11 @@ class ExampleWindow(object):
         self.shutdown()
         glfw.terminate()
 
+    # FIXME non si ridimensiona correttamente
     def _handle_window_resize(self, window, width, height):
         self.width = width
         self.height = height
 
-        self.fb_width, self.fb_height = glfw.get_framebuffer_size(self.window)
+        self.fb_width, self.fb_height = glfw.get_framebuffer_size(window)
 
         self.resize()

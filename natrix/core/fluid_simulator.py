@@ -1,13 +1,12 @@
+from ctypes import c_float
 from math import ceil
 from pathlib import Path
-
-import numpy as np
 
 # noinspection PyUnresolvedReferences
 from bgfx import as_void_ptr, bgfx, ShaderType, load_shader
 
 from natrix.core.common.constants import TemplateConstants
-from natrix.core.utils.shaders_utils import create_buffer, create_2d_buffer
+from natrix.core.utils.shaders_utils import create_buffer
 
 root_path = Path(__file__).parent / "shaders" / "originals"
 
@@ -115,20 +114,12 @@ class FluidSimulator:
             self._init_compute_kernels()
             bgfx.setUniform(
                 self.position_uniform,
-                as_void_ptr(
-                    np.array([position[0], position[1]]).astype(np.float32).tobytes()
-                ),
+                as_void_ptr((c_float * 2)(position[0], position[1])),
             )
             bgfx.setUniform(
-                self.value_uniform,
-                as_void_ptr(
-                    np.array([velocity[0], velocity[1]]).astype(np.float32).tobytes()
-                ),
+                self.value_uniform, as_void_ptr((c_float * 2)(velocity[0], velocity[1]))
             )
-            bgfx.setUniform(
-                self.radius_uniform,
-                as_void_ptr(np.array([radius]).astype(np.float32).tobytes()),
-            )
+            bgfx.setUniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
 
             bgfx.dispatch(
                 0, self._add_velocity_kernel, self._num_groups_x, self._num_groups_y, 1
@@ -142,23 +133,11 @@ class FluidSimulator:
             self._init_compute_kernels()
             bgfx.setUniform(
                 self.position_uniform,
-                as_void_ptr(
-                    np.array([position[0], position[1], 0.0, 0.0])
-                    .astype(np.float32)
-                    .tobytes()
-                ),
+                as_void_ptr((c_float * 2)(position[0], position[1])),
             )
+            bgfx.setUniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
             bgfx.setUniform(
-                self.radius_uniform,
-                as_void_ptr(np.array([radius, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()),
-            )
-            bgfx.setUniform(
-                self.static_uniform,
-                as_void_ptr(
-                    np.array([1.0 if static else 0.0, 0.0, 0.0, 0.0])
-                    .astype(np.float32)
-                    .tobytes()
-                ),
+                self.static_uniform, as_void_ptr((c_float * 1)(1.0 if static else 0.0))
             )
 
             bgfx.dispatch(
@@ -172,31 +151,12 @@ class FluidSimulator:
     # points in normalised local space
     def add_triangle_obstacle(self, p1: tuple, p2: tuple, p3: tuple, static=False):
         if self.simulate:
+            self._init_compute_kernels()
+            bgfx.setUniform(self.p1_uniform, as_void_ptr((c_float * 2)(p1[0], p1[1])))
+            bgfx.setUniform(self.p2_uniform, as_void_ptr((c_float * 2)(p2[0], p2[1])))
+            bgfx.setUniform(self.p3_uniform, as_void_ptr((c_float * 2)(p3[0], p3[1])))
             bgfx.setUniform(
-                self.p1_uniform,
-                as_void_ptr(
-                    np.array([p1[0], p2[1], 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
-            )
-            bgfx.setUniform(
-                self.p2_uniform,
-                as_void_ptr(
-                    np.array([p2[0], p2[1], 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
-            )
-            bgfx.setUniform(
-                self.p3_uniform,
-                as_void_ptr(
-                    np.array([p3[0], p3[1], 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
-            )
-            bgfx.setUniform(
-                self.static_uniform,
-                as_void_ptr(
-                    np.array([1 if static else 0, 0.0, 0.0, 0.0])
-                    .astype(np.float32)
-                    .tobytes()
-                ),
+                self.static_uniform, as_void_ptr((c_float * 1)(1.0 if static else 0.0))
             )
 
             bgfx.dispatch(
@@ -351,28 +311,14 @@ class FluidSimulator:
 
     def _update_params(self, time_delta: float):
         bgfx.setUniform(
-            self.elapsed_time_uniform,
-            as_void_ptr(
-                np.array([time_delta, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-            ),
+            self.elapsed_time_uniform, as_void_ptr((c_float * 1)(time_delta))
+        )
+        bgfx.setUniform(self.speed_uniform, as_void_ptr((c_float * 1)(self.speed)))
+        bgfx.setUniform(
+            self.dissipation_uniform, as_void_ptr((c_float * 1)(self.dissipation))
         )
         bgfx.setUniform(
-            self.speed_uniform,
-            as_void_ptr(
-                np.array([self.speed, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-            ),
-        )
-        bgfx.setUniform(
-            self.dissipation_uniform,
-            as_void_ptr(
-                np.array([self.dissipation, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-            ),
-        )
-        bgfx.setUniform(
-            self.vorticity_scale_uniform,
-            as_void_ptr(
-                np.array([self.vorticity, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-            ),
+            self.vorticity_scale_uniform, as_void_ptr((c_float * 1)(self.vorticity))
         )
 
         if self._viscosity > 0.0:
@@ -380,26 +326,15 @@ class FluidSimulator:
             stencil_factor = 1.0 / (4.0 + centre_factor)
 
             bgfx.setUniform(
-                self.alpha_uniform,
-                as_void_ptr(
-                    np.array([centre_factor, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
+                self.alpha_uniform, as_void_ptr((c_float * 1)(centre_factor))
             )
             bgfx.setUniform(
-                self.rbeta_uniform,
-                as_void_ptr(
-                    np.array([stencil_factor, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
+                self.rbeta_uniform, as_void_ptr((c_float * 1)(stencil_factor))
             )
 
     def _init_compute_kernels(self):
         bgfx.setUniform(
-            self.size_uniform,
-            as_void_ptr(
-                np.array([self._width, self._height, 0.0, 0.0])
-                .astype(np.float32)
-                .tobytes()
-            ),
+            self.size_uniform, as_void_ptr((c_float * 2)(self._width, self._height))
         )
 
         bgfx.setBuffer(1, self._velocity_buffer[self.VELOCITY_READ], bgfx.Access.Read)
@@ -414,16 +349,16 @@ class FluidSimulator:
 
     def _create_buffers(self):
         self._velocity_buffer = [
-            create_2d_buffer(self._num_cells, self.vertex_layout),
-            create_2d_buffer(self._num_cells, self.vertex_layout),
+            create_buffer(self._num_cells, 2, self.vertex_layout),
+            create_buffer(self._num_cells, 2, self.vertex_layout),
         ]
         self._pressure_buffer = [
-            create_buffer(self._num_cells, self.vertex_layout),
-            create_buffer(self._num_cells, self.vertex_layout),
+            create_buffer(self._num_cells, 1, self.vertex_layout),
+            create_buffer(self._num_cells, 1, self.vertex_layout),
         ]
-        self._divergence_buffer = create_buffer(self._num_cells, self.vertex_layout)
-        self._vorticity_buffer = create_buffer(self._num_cells, self.vertex_layout)
-        self._obstacles_buffer = create_2d_buffer(self._num_cells, self.vertex_layout)
+        self._divergence_buffer = create_buffer(self._num_cells, 1, self.vertex_layout)
+        self._vorticity_buffer = create_buffer(self._num_cells, 1, self.vertex_layout)
+        self._obstacles_buffer = create_buffer(self._num_cells, 2, self.vertex_layout)
 
     def _load_compute_kernels(self):
         self._add_velocity_kernel = bgfx.createProgram(

@@ -35,5 +35,4 @@ void main()
 {
     vec4 col = texture2D(s_texColor, v_texcoord0.xy*0.5 + 0.5);
     gl_FragColor = colormap(col.x);
-    //gl_FragColor = col;
 }

@@ -8,10 +8,6 @@ def sub(v1, v2):
     return [v1[0] - v2[0], v1[1] - v2[1], v1[2] - v2[2]]
 
 
-def mul(m1, m2):
-    pass
-
-
 def cross(v1, v2):
     v1x = v1[0]
     v1y = v1[1]

@@ -1,10 +1,9 @@
-import ctypes
 from array import array
 
-from bgfx import bgfx, ImGui, ImVec2, ImVec4, as_void_ptr
+from bgfx import bgfx, ImGui, ImVec2, ImVec4
 
+from demo.smooth_particles_area import SmoothParticlesArea
 from natrix.core.fluid_simulator import FluidSimulator
-from natrix.core.particle_area import ParticleArea
 
 
 class SampleData:
@@ -31,7 +30,6 @@ class SampleData:
         max_val = float("-inf")
         avg_val = 0.0
 
-        # FIXME: da rivedere
         for val in self.m_values:
             min_val = min(min_val, val)
             max_val = max(max_val, val)
@@ -89,7 +87,7 @@ def resource_bar(name, tooltip, num, _max, max_width, height):
     percentage = float(num) / float(_max)
 
     item_hovered |= bar(
-        max(1.0, percentage * max_width), max_width, height, s_resourceColor
+        max(1.0, percentage * max_width), max_width, height * 2, s_resourceColor
     )
     ImGui.SameLine()
 
@@ -99,9 +97,17 @@ def resource_bar(name, tooltip, num, _max, max_width, height):
         ImGui.SetTooltip(f"{tooltip} {(percentage * 100.0):5.2f}%")
 
 
-def show_properties_dialog(fluid_simulator: FluidSimulator, particle_system: ParticleArea):
-    ImGui.SetNextWindowPos(ImVec2(20.0, 300.0), 1 << 2)
-    ImGui.SetNextWindowSize(ImVec2(300.0, 400.0), 1 << 2)
+def show_properties_dialog(
+    fluid_simulator: FluidSimulator, particles_area: SmoothParticlesArea, hidpi: bool
+):
+    res_multiplier = 2 if hidpi else 1
+
+    ImGui.SetNextWindowPos(
+        ImVec2(20.0 * res_multiplier, 300.0 * res_multiplier), 1 << 2
+    )
+    ImGui.SetNextWindowSize(
+        ImVec2(300.0 * res_multiplier, 400.0 * res_multiplier), 1 << 2
+    )
 
     ImGui.Begin("\uf013 Properties")
     ImGui.TextWrapped("Simulation performances")
@@ -126,7 +132,7 @@ def show_properties_dialog(fluid_simulator: FluidSimulator, particle_system: Par
         frame_text_overlay,
         0.0,
         60.0,
-        ImVec2(0.0, 45.0),
+        ImVec2(0.0, 45.0 * res_multiplier),
     )
     ImGui.PopItemWidth()
     ImGui.PopStyleColor()
@@ -156,7 +162,7 @@ def show_properties_dialog(fluid_simulator: FluidSimulator, particle_system: Par
 
     if ImGui.SliderFloat("Speed", speed, 1.0, 1000.0):
         fluid_simulator.speed = speed.value
-        particle_system.speed = speed.value
+        particles_area.speed = speed.value
 
     if ImGui.SliderInt("Iteration", iterations, 10, 100):
         fluid_simulator.iterations = iterations.value
@@ -166,12 +172,12 @@ def show_properties_dialog(fluid_simulator: FluidSimulator, particle_system: Par
 
     ImGui.Separator()
 
-    dissipation = ImGui.Float(particle_system.dissipation)
+    dissipation = ImGui.Float(particles_area.dissipation)
 
     ImGui.Text("Particles area parameters")
 
-    if ImGui.SliderFloat("Dissipation", dissipation, 0.001, 1.0):
-        particle_system.dissipation = dissipation.value
+    if ImGui.SliderFloat("Dissipation", dissipation, 0.900, 1.0):
+        particles_area.dissipation = dissipation.value
 
     ImGui.Separator()
 
@@ -179,6 +185,6 @@ def show_properties_dialog(fluid_simulator: FluidSimulator, particle_system: Par
 
     if ImGui.Checkbox("Stop", stop):
         fluid_simulator.simulate = not stop.value
-        particle_system.simulate = not stop.value
+        particles_area.simulate = not stop.value
 
     ImGui.End()

@@ -1,17 +1,17 @@
+from ctypes import c_float
 from math import ceil
 from pathlib import Path
 
-import numpy as np
 from bgfx import as_void_ptr, bgfx, ShaderType, load_shader
 
 from natrix.core.common.constants import TemplateConstants
 from natrix.core.fluid_simulator import FluidSimulator
 from natrix.core.utils.shaders_utils import create_buffer
 
-root_path = Path(__file__).parent / "shaders" / "originals"
+root_path = Path(__file__).parent / "shaders"
 
 
-class ParticleArea:
+class SmoothParticlesArea:
     PARTICLES_IN = 0
     PARTICLES_OUT = 1
 
@@ -24,7 +24,13 @@ class ParticleArea:
 
     simulate = True
 
-    def __init__(self, width: int, height: int, fluid_simulation: FluidSimulator, vertex_layout: bgfx.VertexLayout):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        fluid_simulation: FluidSimulator,
+        vertex_layout: bgfx.VertexLayout,
+    ):
         self.fluid_simulation = fluid_simulation
         self.vertex_layout = vertex_layout
 
@@ -65,22 +71,10 @@ class ParticleArea:
             self._init_compute_kernels()
             bgfx.setUniform(
                 self.position_uniform,
-                as_void_ptr(
-                    np.array([position[0], position[1], 0.0, 0.0])
-                    .astype(np.float32)
-                    .tobytes()
-                ),
+                as_void_ptr((c_float * 2)(position[0], position[1])),
             )
-            bgfx.setUniform(
-                self.value_uniform,
-                as_void_ptr(
-                    np.array([strength, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
-            )
-            bgfx.setUniform(
-                self.radius_uniform,
-                as_void_ptr(np.array([radius, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()),
-            )
+            bgfx.setUniform(self.value_uniform, as_void_ptr((c_float * 1)(strength)))
+            bgfx.setUniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
 
             bgfx.dispatch(
                 0, self._add_particles_kernel, self._num_groups_x, self._num_groups_x, 1
@@ -92,32 +86,28 @@ class ParticleArea:
 
         if self.simulate:
             bgfx.setUniform(
-                self.dissipation_uniform,
-                as_void_ptr(
-                    np.array([self.dissipation, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
+                self.dissipation_uniform, as_void_ptr((c_float * 1)(self.dissipation))
             )
             bgfx.setUniform(
-                self.elapsed_time_uniform,
-                as_void_ptr(
-                    np.array([time_delta, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
+                self.elapsed_time_uniform, as_void_ptr((c_float * 1)(time_delta))
             )
-            bgfx.setUniform(
-                self.speed_uniform,
-                as_void_ptr(
-                    np.array([self.speed, 0.0, 0.0, 0.0]).astype(np.float32).tobytes()
-                ),
-            )
+            bgfx.setUniform(self.speed_uniform, as_void_ptr((c_float * 1)(self.speed)))
 
             bgfx.dispatch(
-                0, self._advect_particles_kernel, self._num_groups_x, self._num_groups_y, 1
+                0,
+                self._advect_particles_kernel,
+                self._num_groups_x,
+                self._num_groups_y,
+                1,
             )
             self._flip_buffer()
 
     def _set_size(self):
         self._particle_size = (self._width, self._height)
-        self._velocity_size = (self.fluid_simulation.width, self.fluid_simulation.height)
+        self._velocity_size = (
+            self.fluid_simulation.width,
+            self.fluid_simulation.height,
+        )
         group_size_x = TemplateConstants.NUM_THREADS.value
         group_size_y = TemplateConstants.NUM_THREADS.value
 
@@ -146,19 +136,11 @@ class ParticleArea:
     def _init_compute_kernels(self):
         bgfx.setUniform(
             self.particle_size_uniform,
-            as_void_ptr(
-                np.array([self._particle_size[0], self._particle_size[1], 0.0, 0.0])
-                .astype(np.float32)
-                .tobytes()
-            ),
+            as_void_ptr((c_float * 2)(self._particle_size[0], self._particle_size[1])),
         )
         bgfx.setUniform(
             self.velocity_size_uniform,
-            as_void_ptr(
-                np.array([self._velocity_size[0], self._velocity_size[1], 0.0, 0.0])
-                .astype(np.float32)
-                .tobytes()
-            ),
+            as_void_ptr((c_float * 2)(self._velocity_size[0], self._velocity_size[1])),
         )
 
         bgfx.setBuffer(
@@ -174,8 +156,8 @@ class ParticleArea:
 
     def _create_buffers(self):
         self._particles_buffer = [
-            create_buffer(self._num_cells, self.vertex_layout),
-            create_buffer(self._num_cells, self.vertex_layout),
+            create_buffer(self._num_cells, 1, self.vertex_layout),
+            create_buffer(self._num_cells, 1, self.vertex_layout),
         ]
 
     def _load_compute_kernels(self):
