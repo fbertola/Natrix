@@ -1,24 +1,14 @@
 
-#version 310 es
+#include "bgfx_compute.sh"
+#include "constants.sh"
 
-layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
+uniform vec2 _Size;
 
-uniform uvec2 _Size;
+BUFFER_RO(_VelocityIn, vec2, 1);
 
-layout(std430, binding={{ VELOCITY_IN }}) buffer xst__VelocityIn
-{
-    vec2 _VelocityIn[];
-};
+BUFFER_WR(_VelocityOut, vec2, 2);
 
-layout(std430, binding={{ VELOCITY_OUT }}) buffer xst__VelocityOut
-{
-    vec2 _VelocityOut[];
-};
-
-layout(std430, binding={{ OBSTACLES }}) buffer xst__Obstacles
-{
-    vec2 _Obstacles[];
-};
+BUFFER_RO(_Obstacles, vec2, 7);
 
 uniform float _ElapsedTime;
 
@@ -26,6 +16,7 @@ uniform float _Speed;
 
 uniform float _Dissipation;
 
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)
@@ -35,7 +26,7 @@ void main()
     
     uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
     vec2 obstacle = _Obstacles[pos];
-    
+
     if (obstacle.x > 0.0f || obstacle.y > 0.0f)
     {
         _VelocityOut[pos] = vec2(0, 0);
@@ -45,9 +36,9 @@ void main()
         vec2 vel = _VelocityIn[pos];
         vec2 final_pos = vec2(float(gl_GlobalInvocationID.x) - vel.x * _ElapsedTime * _Speed, float(gl_GlobalInvocationID.y) - vel.y * _ElapsedTime * _Speed);
         ivec2 zero = ivec2(0, 0);
-        ivec2 SizeBounds = ivec2(_Size.x - 1u, _Size.y - 1u);
-        ivec2 top_right = ivec2(clamp(ceil(final_pos), vec2(zero), vec2(SizeBounds)));
-        ivec2 bottom_left = ivec2(clamp(floor(final_pos), vec2(zero), vec2(SizeBounds)));
+        ivec2 size_bounds = ivec2(_Size.x - 1u, _Size.y - 1u);
+        ivec2 top_right = ivec2(clamp(ceil(final_pos), vec2(zero), vec2(size_bounds)));
+        ivec2 bottom_left = ivec2(clamp(floor(final_pos), vec2(zero), vec2(size_bounds)));
         vec2 delta = final_pos - vec2(bottom_left);
         vec2 lt = _VelocityIn[uint(top_right.y) * _Size.x + uint(bottom_left.x)];
         vec2 rt = _VelocityIn[uint(top_right.y) * _Size.x + uint(top_right.x)];

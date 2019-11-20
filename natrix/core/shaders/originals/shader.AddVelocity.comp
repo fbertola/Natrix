@@ -1,19 +1,12 @@
 
-#version 310 es
+#include "bgfx_compute.sh"
+#include "constants.sh"
 
-layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
+uniform vec2 _Size;
 
-uniform uvec2 _Size;
+BUFFER_RO(_VelocityIn, vec2, 1);
 
-layout(std430, binding={{ VELOCITY_IN }}) buffer xst__VelocityIn
-{
-    vec2 _VelocityIn[];
-};
-
-layout(std430, binding={{ VELOCITY_OUT }}) buffer xst__VelocityOut
-{
-    vec2 _VelocityOut[];
-};
+BUFFER_WR(_VelocityOut, vec2, 2);
 
 uniform float _Radius;
 
@@ -21,6 +14,9 @@ uniform vec2 _Position;
 
 uniform vec2 _Value;
 
+#include "common.sh"
+
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)

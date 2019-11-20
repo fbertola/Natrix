@@ -1,30 +1,16 @@
-#version 310 es
+#include "bgfx_compute.sh"
 
-layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
+BUFFER_RO(_ParticlesIn, float, 9);
 
-layout(std430, binding={{ PARTICLES_IN }}) buffer xst__ParticlesIn
-{
-    float _ParticlesIn[];
-};
+BUFFER_WR(_ParticlesOut, float, 10);
 
-layout(std430, binding={{ PARTICLES_OUT }}) buffer xst__ParticlesOut
-{
-    float _ParticlesOut[];
-};
+BUFFER_RO(_Velocity, vec2, 1);
 
-uniform uvec2 _ParticleSize;
+BUFFER_RO(_Obstacles, vec2, 7);
 
-layout(std430, binding={{ VELOCITY_IN }}) buffer xst__Velocity
-{
-    vec2 _Velocity[];
-};
+uniform vec2 _ParticleSize;
 
-layout(std430, binding={{ OBSTACLES }}) buffer xst__Obstacles
-{
-    vec2 _Obstacles[];
-};
-
-uniform uvec2 _VelocitySize;
+uniform vec2 _VelocitySize;
 
 uniform float _Dissipation;
 
@@ -35,9 +21,9 @@ uniform float _Speed;
 vec2 GetVelocity(vec2 fPos)
 {
     ivec2 zero = ivec2(0, 0);
-    ivec2 SizeBounds = ivec2(_VelocitySize.x - 1u, _VelocitySize.y - 1u);
-    ivec2 top_right = ivec2(clamp(ceil(fPos), vec2(zero), vec2(SizeBounds)));
-    ivec2 bottom_left = ivec2(clamp(floor(fPos), vec2(zero), vec2(SizeBounds)));
+    ivec2 size_bounds = ivec2(_VelocitySize.x - 1u, _VelocitySize.y - 1u);
+    ivec2 top_right = ivec2(clamp(ceil(fPos), vec2(zero), vec2(size_bounds)));
+    ivec2 bottom_left = ivec2(clamp(floor(fPos), vec2(zero), vec2(size_bounds)));
     vec2 delta = fPos - vec2(bottom_left);
     vec2 lt = _Velocity[uint(top_right.y) * _VelocitySize.x + uint(bottom_left.x)];
     vec2 rt = _Velocity[uint(top_right.y) * _VelocitySize.x + uint(top_right.x)];
@@ -48,6 +34,7 @@ vec2 GetVelocity(vec2 fPos)
     return mix(h2, h1, vec2(delta.y)) * (vec2(_ParticleSize) / vec2(_VelocitySize));
 }
 
+NUM_THREADS(16, 16, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _ParticleSize.x || gl_GlobalInvocationID.y >= _ParticleSize.y)
@@ -69,9 +56,9 @@ void main()
         vec2 vel = GetVelocity(fNormalisedPos);
         vec2 final_pos = vec2(float(gl_GlobalInvocationID.x) - vel.x * _ElapsedTime * _Speed, float(gl_GlobalInvocationID.y) - vel.y * _ElapsedTime * _Speed);
         ivec2 zero = ivec2(0, 0);
-        ivec2 SizeBounds = ivec2(_ParticleSize.x - 1u, _ParticleSize.y - 1u);
-        ivec2 top_right = ivec2(clamp(ceil(final_pos), vec2(zero), vec2(SizeBounds)));
-        ivec2 bottom_left = ivec2(clamp(floor(final_pos), vec2(zero), vec2(SizeBounds)));
+        ivec2 size_bounds = ivec2(_ParticleSize.x - 1u, _ParticleSize.y - 1u);
+        ivec2 top_right = ivec2(clamp(ceil(final_pos), vec2(zero), vec2(size_bounds)));
+        ivec2 bottom_left = ivec2(clamp(floor(final_pos), vec2(zero), vec2(size_bounds)));
         vec2 delta = final_pos - vec2(bottom_left);
         float lt = _ParticlesIn[uint(top_right.y) * _ParticleSize.x + uint(bottom_left.x)];
         float rt = _ParticlesIn[uint(top_right.y) * _ParticleSize.x + uint(top_right.x)];

@@ -1,3 +1,4 @@
+
 uvec4 GetNeighbours(ivec2 pos, ivec2 size)
 {
     uvec4 result;

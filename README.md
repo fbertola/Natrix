@@ -23,21 +23,22 @@
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fbertola/Natrix/master/media/animation3.gif">
+  <img src="https://raw.githubusercontent.com/fbertola/Natrix/master/media/screenshot.png">
 </p>
 
 ## Key Features
 
 * Fast - leverages Compute Shaders to offloads most of the calculations to the GPU.
-* Easy to integrate - does not require any particular framework.
+* Built with BGFX rendering engine, supporting OpenGL, Vulkan, Metal and DirectX backends.
 * Vorticity confinement. 
 * Fluid obstacles.
 * Poisson kernel.
-* Ready to use.
 
 ## How To Use
 
-To use this library, you'll need [Pipenv](https://github.com/pypa/pipenv). From your command line:
+To use this library, you'll need [Pipenv](https://github.com/pypa/pipenv) and the [BGFX Python wrapper](https://github.com/fbertola/bgfx-python).
+
+From your command line:
 
 ```bash
 # Clone this repository
@@ -52,20 +53,48 @@ $ pipenv sync --dev
 
 ## Examples
 
-You will find some examples in the `demo` folder, be sure to check them out before using Natrix.
+In the [demo](https://github.com/fbertola/Natrix/tree/demo/demo) folder you will find a complete example, be sure to check it out. 
 
 ## Credits
 
 This software uses the following open source packages:
 
-- [ModernGL](https://github.com/cprogrammer1994/ModernGL)
-- [Jinja2](https://github.com/pallets/jinja)
-- [Pyglet](https://bitbucket.org/pyglet/pyglet/wiki/Home)
-- [Pygame](https://github.com/pygame/pygame)
+- [BGFX](https://github.com/bkaradzic/bgfx)
+- [BGFX Python Wrapper](https://github.com/fbertola/bgfx-python)
 
-## License
+[License (BSD 2-clause)](https://raw.githubusercontent.com/fbertola/bgfx-python/master/LICENSE)
+-----------------------------------------------------------------------
 
-MIT
+<a href="http://opensource.org/licenses/BSD-2-Clause" target="_blank">
+<img align="right" src="http://opensource.org/trademarks/opensource/OSI-Approved-License-100x137.png">
+</a>
+
+    BSD 2-Clause License
+    
+    Copyright (c) 2019, Federico Bertola
+    All rights reserved.
+    
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+    
+    1. Redistributions of source code must retain the above copyright notice, this
+       list of conditions and the following disclaimer.
+    
+    2. Redistributions in binary form must reproduce the above copyright notice,
+       this list of conditions and the following disclaimer in the documentation
+       and/or other materials provided with the distribution.
+    
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 
 ---
 

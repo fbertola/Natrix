@@ -1,22 +1,20 @@
 
-#version 310 es
+#include "bgfx_compute.sh"
+#include "constants.sh"
 
-layout(local_size_x = {{ NUM_THREADS }}, local_size_y = {{ NUM_THREADS }}, local_size_z = 1) in;
+uniform vec2 _Size;
 
-uniform uvec2 _Size;
+BUFFER_WR(_Obstacles, vec2, 7);
 
-layout(std430, binding={{ OBSTACLES }}) buffer xst__Obstacles
-{
-    vec2 _Obstacles[];
-};
-
-uniform int _Static;
+uniform float _Static;
 
 uniform vec2 _P1;
 
 uniform vec2 _P2;
 
 uniform vec2 _P3;
+
+#include "common.sh"
 
 float Sign(vec2 p1, vec2 p2, vec2 p3)
 {
@@ -31,6 +29,7 @@ bool IsPointInTriangle(vec2 pt, vec2 v1, vec2 v2, vec2 v3)
     return (b1 == b2) && (b2 == b3);
 }
 
+NUM_THREADS(GROUP_SIZE, GROUP_SIZE, 1)
 void main()
 {
     if (gl_GlobalInvocationID.x >= _Size.x || gl_GlobalInvocationID.y >= _Size.y)

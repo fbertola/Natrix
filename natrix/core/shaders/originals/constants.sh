@@ -1,0 +1,12 @@
+
+#define GROUP_SIZE 16
+#define VELOCITY_IN 1
+#define VELOCITY_OUT 2
+#define PRESSURE_IN 3
+#define PRESSURE_OUT 4
+#define VORTICITY 5
+#define DIVERGENCE 6
+#define OBSTACLES 7
+#define GENERIC 8
+#define PARTICLES_IN 9
+#define PARTICLES_OUT 10
