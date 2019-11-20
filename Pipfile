@@ -7,10 +7,7 @@ verify_ssl = true
 black = "==18.9b0"
 
 [packages]
-numpy = "*"
 glfw = "*"
-jinja2 = "*"
-python-decouple = "*"
 
 [requires]
 python_version = ">=3.6"
