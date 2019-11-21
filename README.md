@@ -28,7 +28,7 @@
 
 ## Key Features
 
-* Fast - leverages Compute Shaders to offloads most of the calculations to the GPU.
+* Fast - leverages Compute Shaders to offload most of the calculations to the GPU.
 * Built with BGFX rendering engine, supporting OpenGL, Vulkan, Metal and DirectX backends.
 * Vorticity confinement. 
 * Fluid obstacles.
