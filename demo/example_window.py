@@ -1,5 +1,6 @@
 import ctypes
 import sys
+import os
 import time
 
 # noinspection PyPackageRequirements
@@ -59,8 +60,6 @@ class ExampleWindow(object):
 
     # noinspection PyProtectedMember
     def run(self):
-        glfw_native.glfwGetCocoaWindow.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
-        glfw_native.glfwGetCocoaWindow.restype = ctypes.c_void_p
         glfw_native.glfwCreateWindow.argtypes = [
             ctypes.c_int,
             ctypes.c_int,
@@ -92,15 +91,20 @@ class ExampleWindow(object):
             glfw_native.glfwGetCocoaWindow.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
             glfw_native.glfwGetCocoaWindow.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetCocoaWindow(self.window)
-        elif sys.platform == "windows":
+        elif sys.platform == "win32":
             glfw_native.glfwGetWin32Window.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
             glfw_native.glfwGetWin32Window.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetWin32Window(self.window)
-        elif sys.platform == "linux":
+        elif sys.platform == "linux" and "WAYLAND_DISPLAY" not in os.environ:
             glfw_native.glfwGetX11Window.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
             glfw_native.glfwGetX11Window.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetX11Window(self.window)
             display = glfw_native.glfwGetX11Display()
+        elif sys.platform == "linux" and "WAYLAND_DISPLAY" in os.environ:
+            glfw_native.glfwGetWaylandWindow.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
+            glfw_native.glfwGetWaylandWindow.restype = ctypes.c_void_p
+            handle = glfw_native.glfwGetWaylandWindow(self.window)
+            display = glfw_native.glfwGetWaylandDisplay()
 
         data = bgfx.PlatformData()
         data.ndt = display

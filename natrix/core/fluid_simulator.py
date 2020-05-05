@@ -214,15 +214,14 @@ class FluidSimulator:
 
             # Viscosity
             if self.viscosity > 0.0:
-                for _ in range(self.iterations):
-                    bgfx.dispatch(
-                        0,
-                        self._viscosity_kernel,
-                        self._num_groups_x,
-                        self._num_groups_y,
-                        1,
-                    )
-                    self._flip_velocity_buffer()
+                bgfx.dispatch(
+                    0,
+                    self._viscosity_kernel,
+                    self._num_groups_x,
+                    self._num_groups_y,
+                    1,
+                )
+                self._flip_velocity_buffer()
 
             # Divergence
             bgfx.dispatch(

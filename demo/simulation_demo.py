@@ -7,7 +7,6 @@ from bgfx import (
     bgfx,
     ImGui,
     ImGuiExtra,
-    ImVec2,
     BGFX_CLEAR_COLOR,
     BGFX_CLEAR_DEPTH,
     BGFX_RESET_VSYNC,
@@ -58,14 +57,13 @@ class SimulationDemo(ExampleWindow):
 
         self.init_conf = bgfx.Init()
         self.init_conf.debug = True
-        self.init_conf.type = bgfx.RendererType.Metal
         self.init_conf.resolution.width = self.fb_width
         self.init_conf.resolution.height = self.fb_height
         self.init_conf.resolution.reset = BGFX_RESET_VSYNC | BGFX_RESET_HIDPI
 
     def init(self, platform_data):
         self.init_conf.platformData = platform_data
-
+        bgfx.renderFrame()
         bgfx.init(self.init_conf)
         bgfx.reset(
             self.fb_width,
@@ -184,7 +182,7 @@ class SimulationDemo(ExampleWindow):
             (0.65, 0.5), (0.42, 0.5), (0.42, 0.39)
         )
         self.fluid_simulator.add_triangle_obstacle(
-            (0.65, 0.06), (0.65, 0.39), (0.42, 0.39)
+            (0.65, 0.5), (0.65, 0.39), (0.42, 0.39)
         )
         self.fluid_simulator.update(dt)
 
