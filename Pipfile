@@ -8,6 +8,7 @@ black = "==18.9b0"
 
 [packages]
 glfw = "*"
+python-decouple = "*"
 
 [requires]
 python_version = ">=3.6"
