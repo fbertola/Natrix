@@ -29,9 +29,9 @@ vec2 GetVelocity(vec2 fPos)
     vec2 rt = _Velocity[uint(top_right.y) * _VelocitySize.x + uint(top_right.x)];
     vec2 lb = _Velocity[uint(bottom_left.y) * _VelocitySize.x + uint(bottom_left.x)];
     vec2 rb = _Velocity[uint(bottom_left.y) * _VelocitySize.x + uint(top_right.x)];
-    vec2 h1 = mix(lt, rt, vec2(delta.x));
-    vec2 h2 = mix(lb, rb, vec2(delta.x));
-    return mix(h2, h1, vec2(delta.y)) * (vec2(_ParticleSize) / vec2(_VelocitySize));
+    vec2 h1 = mix(lt, rt, vec2(delta.x, 0));
+    vec2 h2 = mix(lb, rb, vec2(delta.x, 0));
+    return mix(h2, h1, vec2(delta.y, 0)) * (vec2(_ParticleSize) / vec2(_VelocitySize));
 }
 
 NUM_THREADS(16, 16, 1)
@@ -64,8 +64,8 @@ void main()
         float rt = _ParticlesIn[uint(top_right.y) * _ParticleSize.x + uint(top_right.x)];
         float lb = _ParticlesIn[uint(bottom_left.y) * _ParticleSize.x + uint(bottom_left.x)];
         float rb = _ParticlesIn[uint(bottom_left.y) * _ParticleSize.x + uint(top_right.x)];
-        float h1 = mix(lt, rt, delta.x);
-        float h2 = mix(lb, rb, delta.x);
-        _ParticlesOut[particle_pos] = mix(h2, h1, delta.y) * _Dissipation;
+        float h1 = mix(lt, rt, vec2(delta.x, 0));
+        float h2 = mix(lb, rb, vec2(delta.x, 0));
+        _ParticlesOut[particle_pos] = mix(h2, h1, vec2(delta.y, 0)) * _Dissipation;
     }
 }

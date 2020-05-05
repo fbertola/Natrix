@@ -24,7 +24,7 @@ void main()
     vec2 splat_pos = _Position * vec2(_ParticleSize);
     float val = _ParticlesIn[pos];
     float result = val;
-    float len = distance(splat_pos, vec2(gl_GlobalInvocationID));
+    float len = distance(splat_pos, vec2(gl_GlobalInvocationID.xy));
     if (len <= _Radius)
     {
         result = clamp(val + _Value * (_Radius - len) / _Radius, 0.0f, 255.0f);

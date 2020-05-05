@@ -27,7 +27,7 @@ void main()
     vec2 splat_pos = _Position * vec2(_Size);
     vec2 val = _VelocityIn[pos];
     vec2 result = val;
-    float len = distance(splat_pos, vec2(gl_GlobalInvocationID));
+    float len = distance(splat_pos, vec2(gl_GlobalInvocationID.xy));
     if (len <= _Radius)
     {
         result = val + _Value * (_Radius - len) / _Radius;

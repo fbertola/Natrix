@@ -42,11 +42,11 @@ void main()
         uint pos = gl_GlobalInvocationID.y * _Size.x + gl_GlobalInvocationID.x;
         if (_Static > 0)
         {
-            _Obstacles[pos].y = 1.0f;
+            _Obstacles[pos] = vec2(0, 1.0f);
         }
         else
         {
-            _Obstacles[pos].x = 1.0f;
+            _Obstacles[pos] = vec2(1.0f, 0);
         }
     }
 }

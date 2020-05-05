@@ -27,11 +27,11 @@ void main()
     {
         if (_Static > 0)
         {
-            _Obstacles[pos].y = 1.0f;
+            _Obstacles[pos] = vec2(1.0f, 0);
         }
         else
         {
-            _Obstacles[pos].x = 1.0f;
+            _Obstacles[pos] = vec2(1.0f, 0);
         }
     }
 }
