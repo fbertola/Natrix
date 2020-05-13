@@ -44,9 +44,9 @@ void main()
         vec2 rt = _VelocityIn[uint(top_right.y) * _Size.x + uint(top_right.x)];
         vec2 lb = _VelocityIn[uint(bottom_left.y) * _Size.x + uint(bottom_left.x)];
         vec2 rb = _VelocityIn[uint(bottom_left.y) * _Size.x + uint(top_right.x)];
-        vec2 h1 = mix(lt, rt, vec2(delta.x, 0));
-        vec2 h2 = mix(lb, rb, vec2(delta.x, 0));
-        _VelocityOut[pos] = clamp(mix(h2, h1, vec2(delta.y, 0)) * _Dissipation, vec2(-1.0, -1.0), vec2(1.0, 1.0));
+        vec2 h1 = mix(lt, rt, delta);
+        vec2 h2 = mix(lb, rb, delta);
+        _VelocityOut[pos] = clamp(mix(h2, h1, delta) * _Dissipation, vec2(-1.0, -1.0), vec2(1.0, 1.0));
     }
 }
 
