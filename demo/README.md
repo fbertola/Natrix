@@ -7,4 +7,3 @@ It demonstrates how to:
 * use different resolutions for the velocity field.
 * use [ImGui](https://github.com/ocornut/imgui) to create a simple GUI for controlling the simulation.
 * support HiDPI screens.
-* add velocities and obstacles to the simulation
