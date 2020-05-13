@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "e65bba4fa133943e6fc60155e77d8a205f33b411a95570833dd9033c3cd677b4"
+            "sha256": "82fbc331a4acf764a4fc38eaafad2373f02be4b6bc78020457afba841b18cf9e"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,13 +16,6 @@
         ]
     },
     "default": {
-        "decouple": {
-            "hashes": [
-                "sha256:c253c1cc62b76e9720a066f334552548c6de1884bc3bdf456ddb62d61b867b09"
-            ],
-            "index": "pypi",
-            "version": "==0.0.7"
-        },
         "glfw": {
             "hashes": [
                 "sha256:0ef47bbaf95e65ac151b71f4853ee86d13fdc686282f5b7357e91d11f17faefa",
@@ -35,6 +28,13 @@
             ],
             "index": "pypi",
             "version": "==1.11.0"
+        },
+        "python-decouple": {
+            "hashes": [
+                "sha256:55c546b85b0c47a15a47a4312d451a437f7344a9be3e001660bccd93b637de95"
+            ],
+            "index": "pypi",
+            "version": "==3.3"
         }
     },
     "develop": {
@@ -62,10 +62,10 @@
         },
         "click": {
             "hashes": [
-                "sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13",
-                "sha256:5b94b49521f6456670fdb30cd82a4eca9412788a93fa6dd6df72c94d5a8ff2d7"
+                "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
+                "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"
             ],
-            "version": "==7.0"
+            "version": "==7.1.2"
         },
         "toml": {
             "hashes": [
