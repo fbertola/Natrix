@@ -9,6 +9,7 @@ black = "==18.9b0"
 [packages]
 glfw = "*"
 python-decouple = "*"
+bgfx-python = "*"
 
 [requires]
 python_version = ">=3.6"
