@@ -97,7 +97,7 @@ class SimulationDemo(ExampleWindow):
         )
         self.fluid_simulator.vorticity = 1.0
         self.fluid_simulator.viscosity = 0.5
-        self.fluid_simulator.iterations = 100
+        self.fluid_simulator.iterations = 50
 
         self.particle_area = SmoothParticlesArea(
             self.fb_width, self.fb_height, self.fluid_simulator, self.vertex_layout
@@ -208,7 +208,7 @@ class SimulationDemo(ExampleWindow):
         bgfx.set_state(BGFX_STATE_DEFAULT)
         bgfx.set_image(0, self.output_texture, 0, bgfx.Access.WRITE)
 
-        self.fluid_simulator.add_circle_obstacle((0.5, 0.7), 30.0)
+        self.fluid_simulator.add_circle_obstacle((0.5, 0.5), 40.0)
 
         self.fluid_simulator.update(dt)
         self.particle_area.update(dt)
@@ -282,7 +282,7 @@ class SimulationDemo(ExampleWindow):
 
         if ImGui.slider_float("Speed", speed, 1.0, 1000.0):
             self.fluid_simulator.speed = speed.value
-            self.particles_area.speed = speed.value
+            self.particle_area.speed = speed.value
 
         if ImGui.slider_float("V_Dissipation", fluid_dissipation, 0.500, 1.0):
             self.fluid_simulator.dissipation = fluid_dissipation.value
@@ -310,7 +310,7 @@ class SimulationDemo(ExampleWindow):
             self.fluid_simulator.simulate = not stop.value
             self.particle_area.simulate = not stop.value
 
-        ImGui.checkbox("Show Quiver plot", self.show_quiver_plot_overlay)
+        ImGui.checkbox("Show velocity field", self.show_quiver_plot_overlay)
         ImGui.same_line()
         ImGui.push_item_width(200.0)
         ImGui.combo(
