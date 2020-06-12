@@ -29,7 +29,7 @@ float _vector(vec2 p, vec2 v) {
     p -= _arrow_tile_center_coord(p);
 	float mag_v = length(v), mag_p = length(p);
 
-	if (mag_v > 0.0) {
+	if (mag_v > 0.001) {
 		vec2 dir_v = v / mag_v;
 
 		mag_v = clamp(mag_v, 0.0, ArrowTileSize * 0.5);
@@ -42,7 +42,7 @@ float _vector(vec2 p, vec2 v) {
 
 		return min(shaft, head);
 	} else {
-		return mag_p;
+		return 1.0;
 	}
 }
 
