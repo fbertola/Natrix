@@ -2,8 +2,7 @@ from ctypes import c_float
 from math import ceil
 from pathlib import Path
 
-from bgfx import as_void_ptr, bgfx, ShaderType, load_shader
-
+from bgfx import as_void_ptr, bgfx, load_shader, ShaderType
 from natrix.core.common.constants import TemplateConstants
 from natrix.core.fluid_simulator import FluidSimulator
 from natrix.core.utils.shaders_utils import create_buffer

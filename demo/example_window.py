@@ -100,7 +100,9 @@ class ExampleWindow(object):
             handle = glfw_native.glfwGetX11Window(self.window)
             display = glfw_native.glfwGetX11Display()
         elif sys.platform == "linux" and "WAYLAND_DISPLAY" in os.environ:
-            glfw_native.glfwGetWaylandWindow.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
+            glfw_native.glfwGetWaylandWindow.argtypes = [
+                ctypes.POINTER(glfw._GLFWwindow)
+            ]
             glfw_native.glfwGetWaylandWindow.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetWaylandWindow(self.window)
             display = glfw_native.glfwGetWaylandDisplay()
