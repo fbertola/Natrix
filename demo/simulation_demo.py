@@ -1,5 +1,4 @@
-import random
-from ctypes import Structure, c_float, sizeof
+from ctypes import c_float, sizeof, Structure
 from pathlib import Path
 
 import glfw
@@ -19,17 +18,16 @@ from bgfx import (
     BGFX_STATE_WRITE_A,
     BGFX_STATE_DEFAULT,
     BGFX_TEXTURE_COMPUTE_WRITE,
-    BGFX_RESET_HIDPI, BGFX_STATE_WRITE_Z, BGFX_STATE_DEPTH_TEST_LESS, BGFX_STATE_CULL_CW, BGFX_STATE_MSAA,
-    BGFX_STATE_BLEND_NORMAL, BGFX_STATE_BLEND_ALPHA,
+    BGFX_RESET_HIDPI,
+    BGFX_STATE_BLEND_ALPHA,
 )
+from loguru import logger
 
 from demo.example_window import ExampleWindow
-from natrix.core.fluid_simulator import FluidSimulator
 from demo.smooth_particles_area import SmoothParticlesArea
 from demo.utils.imgui_utils import show_properties_dialog
 from demo.utils.matrix_utils import look_at, proj
-
-from loguru import logger
+from natrix.core.fluid_simulator import FluidSimulator
 
 logger.enable("bgfx")
 
@@ -139,7 +137,9 @@ class SimulationDemo(ExampleWindow):
                 "demo.VertexShader.vert", ShaderType.VERTEX, root_path=root_path
             ),
             load_shader(
-                "demo.FieldFragmentShader.frag", ShaderType.FRAGMENT, root_path=root_path
+                "demo.FieldFragmentShader.frag",
+                ShaderType.FRAGMENT,
+                root_path=root_path,
             ),
             True,
         )
@@ -148,7 +148,9 @@ class SimulationDemo(ExampleWindow):
                 "demo.VertexShader.vert", ShaderType.VERTEX, root_path=root_path
             ),
             load_shader(
-                "demo.QuiverFragmentShader.frag", ShaderType.FRAGMENT, root_path=root_path
+                "demo.QuiverFragmentShader.frag",
+                ShaderType.FRAGMENT,
+                root_path=root_path,
             ),
             True,
         )
@@ -215,32 +217,52 @@ class SimulationDemo(ExampleWindow):
 
         if glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
             n_mouse_x, n_mouse_y = self._get_normalized_mouse_coords(mouse_x, mouse_y)
-            n_old_mouse_x, n_old_mouse_y = self._get_normalized_mouse_coords(self.old_mouse_x, self.old_mouse_y)
+            n_old_mouse_x, n_old_mouse_y = self._get_normalized_mouse_coords(
+                self.old_mouse_x, self.old_mouse_y
+            )
             vel_x = n_mouse_x - n_old_mouse_x
             vel_y = n_mouse_y - n_old_mouse_y
             # if vel_x != 0 and vel_y != 0:
-            self.fluid_simulator.add_velocity((n_mouse_x, n_mouse_y), (vel_x * 10, vel_y * 10), 32.0)
+            self.fluid_simulator.add_velocity(
+                (n_mouse_x, n_mouse_y), (vel_x * 10, vel_y * 10), 32.0
+            )
             self.particle_area.add_particles((n_mouse_x, n_mouse_y), 200.0, 0.1)
 
         self.old_mouse_x = mouse_x
         self.old_mouse_y = mouse_y
 
-        bgfx.set_state(0
-                       | BGFX_STATE_WRITE_RGB
-                       | BGFX_STATE_WRITE_A
-                       | BGFX_STATE_BLEND_ALPHA
-                       )
+        bgfx.set_state(
+            0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ALPHA
+        )
 
         bgfx.dispatch(0, self.cs_program, self.fb_width // 16, self.fb_height // 16)
         bgfx.set_texture(0, self.texture_uniform, self.output_texture)
         bgfx.submit(0, self.main_program, 0, False)
 
         if self.show_quiver_plot_overlay.value:
-            bgfx.set_buffer(1, self.fluid_simulator.get_velocity_buffer(), bgfx.Access.READ)
-            bgfx.set_uniform(self.window_size_uniform, as_void_ptr((c_float * 2)(self.fb_width, self.fb_height)))
-            bgfx.set_uniform(self.velocity_size_uniform, as_void_ptr((c_float * 2)(self.fluid_simulator.width, self.fluid_simulator.height)))
-            bgfx.set_uniform(self.arrow_tile_size_uniform,
-                             as_void_ptr((c_float * 1)(self.quiver_plot_resolutions[self.quiver_plot_resolution.value])))
+            bgfx.set_buffer(
+                1, self.fluid_simulator.get_velocity_buffer(), bgfx.Access.READ
+            )
+            bgfx.set_uniform(
+                self.window_size_uniform,
+                as_void_ptr((c_float * 2)(self.fb_width, self.fb_height)),
+            )
+            bgfx.set_uniform(
+                self.velocity_size_uniform,
+                as_void_ptr(
+                    (c_float * 2)(
+                        self.fluid_simulator.width, self.fluid_simulator.height
+                    )
+                ),
+            )
+            bgfx.set_uniform(
+                self.arrow_tile_size_uniform,
+                as_void_ptr(
+                    (c_float * 1)(
+                        self.quiver_plot_resolutions[self.quiver_plot_resolution.value]
+                    )
+                ),
+            )
             bgfx.submit(0, self.quiver_program, 0, False)
 
         bgfx.frame()
@@ -257,10 +279,15 @@ class SimulationDemo(ExampleWindow):
         res_multiplier = 2 if self.hidpi else 1
 
         ImGui.set_next_window_pos(
-            ImGui.Vec2(self.fb_width - self.fb_width / 4.1 - 20.0 * res_multiplier, 20.0 * res_multiplier), ImGui.Condition.FirstUseEver
+            ImGui.Vec2(
+                self.fb_width - self.fb_width / 4.1 - 20.0 * res_multiplier,
+                20.0 * res_multiplier,
+            ),
+            ImGui.Condition.FirstUseEver,
         )
         ImGui.set_next_window_size(
-            ImGui.Vec2(self.fb_width / 4.1, self.fb_height / 2.3), ImGui.Condition.FirstUseEver
+            ImGui.Vec2(self.fb_width / 4.1, self.fb_height / 2.3),
+            ImGui.Condition.FirstUseEver,
         )
 
         ImGui.begin("\uf013 Settings")
@@ -314,9 +341,7 @@ class SimulationDemo(ExampleWindow):
         ImGui.same_line()
         ImGui.push_item_width(200.0)
         ImGui.combo(
-            "",
-            self.quiver_plot_resolution,
-            ["Very Small", "Small", "Medium", "Large"],
+            "", self.quiver_plot_resolution, ["Very Small", "Small", "Medium", "Large"],
         )
         ImGui.pop_item_width()
         ImGui.end()

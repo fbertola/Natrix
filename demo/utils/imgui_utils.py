@@ -101,7 +101,10 @@ def show_properties_dialog(fb_width, fb_height, hidpi: bool):
     res_multiplier = 2 if hidpi else 1
 
     ImGui.set_next_window_pos(
-        ImGui.Vec2(20.0 * res_multiplier, fb_height - fb_height / 1.7 - 20.0 * res_multiplier), ImGui.Condition.FirstUseEver
+        ImGui.Vec2(
+            20.0 * res_multiplier, fb_height - fb_height / 1.7 - 20.0 * res_multiplier
+        ),
+        ImGui.Condition.FirstUseEver,
     )
     ImGui.set_next_window_size(
         ImGui.Vec2(fb_width / 4.3, fb_height / 1.7), ImGui.Condition.FirstUseEver

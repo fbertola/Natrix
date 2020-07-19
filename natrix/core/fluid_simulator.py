@@ -340,10 +340,14 @@ class FluidSimulator:
         )
 
         bgfx.set_buffer(1, self._velocity_buffer[self.VELOCITY_READ], bgfx.Access.READ)
-        bgfx.set_buffer(2, self._velocity_buffer[self.VELOCITY_WRITE], bgfx.Access.WRITE)
+        bgfx.set_buffer(
+            2, self._velocity_buffer[self.VELOCITY_WRITE], bgfx.Access.WRITE
+        )
 
         bgfx.set_buffer(3, self._pressure_buffer[self.PRESSURE_READ], bgfx.Access.READ)
-        bgfx.set_buffer(4, self._pressure_buffer[self.PRESSURE_WRITE], bgfx.Access.WRITE)
+        bgfx.set_buffer(
+            4, self._pressure_buffer[self.PRESSURE_WRITE], bgfx.Access.WRITE
+        )
 
         bgfx.set_buffer(5, self._divergence_buffer, bgfx.Access.READ_WRITE)
         bgfx.set_buffer(6, self._vorticity_buffer, bgfx.Access.READ_WRITE)
