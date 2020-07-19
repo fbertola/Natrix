@@ -2,9 +2,6 @@ from array import array
 
 from bgfx import bgfx, ImGui
 
-from demo.smooth_particles_area import SmoothParticlesArea
-from natrix.core.fluid_simulator import FluidSimulator
-
 
 class SampleData:
     m_values = []
