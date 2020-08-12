@@ -36,9 +36,7 @@
 
 ## How To Use
 
-To use this library, you'll need [Pipenv](https://github.com/pypa/pipenv) and the [BGFX Python wrapper](https://github.com/fbertola/bgfx-python).
-
-From your command line:
+To use this library, you'll need [Poetry](https://github.com/python-poetry/poetry):
 
 ```bash
 # Clone this repository
@@ -48,7 +46,7 @@ $ git clone https://github.com/fbertola/Natrix .
 $ cd Natrix
 
 # Install dependencies
-$ pipenv sync --dev
+$ poetry install
 ```
 
 ## Examples
