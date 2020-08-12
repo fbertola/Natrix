@@ -67,6 +67,9 @@ class SimulationDemo(ExampleWindow):
         self.old_mouse_x = -1
         self.old_mouse_y = -1
 
+        self.particles_strength = 0.04
+        self.particles_diameter = 250.0
+
         self.show_quiver_plot_overlay = ImGui.Bool(False)
         self.quiver_plot_resolution = ImGui.Int(2)
         self.quiver_plot_resolutions = (8.0, 16.0, 32.0, 64.0)
@@ -226,7 +229,7 @@ class SimulationDemo(ExampleWindow):
             self.fluid_simulator.add_velocity(
                 (n_mouse_x, n_mouse_y), (vel_x * 10, vel_y * 10), 32.0
             )
-            self.particle_area.add_particles((n_mouse_x, n_mouse_y), 200.0, 0.1)
+            self.particle_area.add_particles((n_mouse_x, n_mouse_y), self.particles_diameter, self.particles_strength)
 
         self.old_mouse_x = mouse_x
         self.old_mouse_y = mouse_y
@@ -281,12 +284,12 @@ class SimulationDemo(ExampleWindow):
         ImGui.set_next_window_pos(
             ImGui.Vec2(
                 self.fb_width - self.fb_width / 4.1 - 20.0 * res_multiplier,
-                20.0 * res_multiplier,
+                40.0 * res_multiplier,
             ),
             ImGui.Condition.FirstUseEver,
         )
         ImGui.set_next_window_size(
-            ImGui.Vec2(self.fb_width / 4.1, self.fb_height / 2.3),
+            ImGui.Vec2(self.fb_width / 4.1, self.fb_height / 2.1),
             ImGui.Condition.FirstUseEver,
         )
 
@@ -298,6 +301,8 @@ class SimulationDemo(ExampleWindow):
         iterations = ImGui.Int(self.fluid_simulator.iterations)
         borders = ImGui.Bool(self.fluid_simulator.has_borders)
         fluid_dissipation = ImGui.Float(self.fluid_simulator.dissipation)
+        part_strength = ImGui.Float(self.particles_strength)
+        part_diameter = ImGui.Float(self.particles_diameter)
 
         ImGui.text("Fluid simulation parameters")
 
@@ -328,6 +333,12 @@ class SimulationDemo(ExampleWindow):
 
         if ImGui.slider_float("P_Dissipation", particles_dissipation, 0.900, 1.0):
             self.particle_area.dissipation = particles_dissipation.value
+
+        if ImGui.slider_float("Strength", part_strength, 0.0, 1.0):
+            self.particles_strength = part_strength.value
+
+        if ImGui.slider_float("Diameter", part_diameter, 100.0, 1000.0):
+            self.particles_diameter = part_diameter.value
 
         ImGui.separator()
 
