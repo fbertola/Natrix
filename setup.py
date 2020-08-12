@@ -11,7 +11,7 @@ DESCRIPTION = 'Fast fluid simulation for python.'
 URL = 'https://github.com/fbertola/Natrix'
 AUTHOR = 'Federico Bertola'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = None
+VERSION = "1.0.1"
 
 REQUIRED = [
     "bgfx-python",
@@ -27,17 +27,9 @@ try:
 except FileNotFoundError:
     long_description = DESCRIPTION
 
-about = {}
-if not VERSION:
-    project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
-
 setup(
     name=NAME,
-    version=about['__version__'],
+    version=VERSION,
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type='text/markdown',
