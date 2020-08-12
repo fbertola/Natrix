@@ -5,6 +5,8 @@ BUFFER_RO(_ParticlesIn, float, 9);
 
 BUFFER_WR(_ParticlesOut, float, 10);
 
+BUFFER_RO(_Obstacles, vec2, 7);
+
 uniform float _Radius;
 
 uniform vec2 _Position;
@@ -21,10 +23,10 @@ void main()
         return;
     }
     uint pos =  gl_GlobalInvocationID.y * _ParticleSize.x + gl_GlobalInvocationID.x ;
-    vec2 splat_pos = _Position * vec2(_ParticleSize);
+    vec2 splat_pos = _Position * _ParticleSize;
     float val = _ParticlesIn[pos];
     float result = val;
-    float len = distance(splat_pos, vec2(gl_GlobalInvocationID.xy));
+    float len = distance(splat_pos, gl_GlobalInvocationID.xy);
     if (len <= _Radius)
     {
         result = clamp(val + _Value * (_Radius - len) / _Radius, 0.0f, 255.0f);
