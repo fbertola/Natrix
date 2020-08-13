@@ -8,7 +8,7 @@ before_install:
   - pip3 install poetry
 
 install:
-  - pipenv install
+  - poetry install
 
 script:
   - true
