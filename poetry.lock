@@ -66,7 +66,7 @@ description = "Python wrapper for BGFX Library"
 name = "bgfx-python"
 optional = false
 python-versions = ">=3.6.0"
-version = "1.0.3"
+version = "1.0.4"
 
 [package.dependencies]
 loguru = "*"
@@ -619,7 +619,7 @@ description = "Virtual Python Environment builder"
 name = "virtualenv"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
-version = "20.0.28"
+version = "20.0.30"
 
 [package.dependencies]
 appdirs = ">=1.4.3,<2"
@@ -694,16 +694,16 @@ bandit = [
     {file = "bandit-1.6.2.tar.gz", hash = "sha256:41e75315853507aa145d62a78a2a6c5e3240fe14ee7c601459d0df9418196065"},
 ]
 bgfx-python = [
-    {file = "bgfx-python-1.0.3.tar.gz", hash = "sha256:b07fdc7c60bb138e07829bed8bde397a3d400ff21f5f70d6ed58090bc58635e8"},
-    {file = "bgfx_python-1.0.3-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:1fdf36a3ccc9727ccd5f31136ee75285a062743c07bd1f39bfbbfad663b2baaa"},
-    {file = "bgfx_python-1.0.3-cp36-cp36m-manylinux2014_x86_64.whl", hash = "sha256:140632cc27a85d2555761a41cc3520e62fb4e18a8df7965fd4e3abc5f2299592"},
-    {file = "bgfx_python-1.0.3-cp36-cp36m-win_amd64.whl", hash = "sha256:7e7d6970b6a8f136b634d8b157e867bf1586e968f6d1cf20272eabafa50612ac"},
-    {file = "bgfx_python-1.0.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:472845011c9bce78d636514fae6cef38c4f727e085fd4fe7ccddef0c6e2d5930"},
-    {file = "bgfx_python-1.0.3-cp37-cp37m-manylinux2014_x86_64.whl", hash = "sha256:f4e0dfa8c291f8352335e4c2ff0ecd1d450bfeb9d91bd8ea47b7db6e367ed1db"},
-    {file = "bgfx_python-1.0.3-cp37-cp37m-win_amd64.whl", hash = "sha256:53783ea00f00609806a277cf6a6a1e2f1672bb8389eac7014e698bc2dac99668"},
-    {file = "bgfx_python-1.0.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:50345f091d6c0dab50f2e68e9e6e87b064f14dcf54b8dff52d7e1595c55afb58"},
-    {file = "bgfx_python-1.0.3-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:6e5a0c1ea40de6062e9b869815b307c54edd2a0a19e53c786a8cdbeecf2de882"},
-    {file = "bgfx_python-1.0.3-cp38-cp38-win_amd64.whl", hash = "sha256:e9a09b3c9a7536558612c637f783021fc363b07337f717b5d76b7a3430b7a26f"},
+    {file = "bgfx-python-1.0.4.tar.gz", hash = "sha256:0033d9b475692084bc70e95aecd8ed63bad552a5167c830b8574d04c9a0785b9"},
+    {file = "bgfx_python-1.0.4-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:086ba737c04c6e95c765370e8b080b20cf2b3380a2395f5fff24817004439b17"},
+    {file = "bgfx_python-1.0.4-cp36-cp36m-manylinux2014_x86_64.whl", hash = "sha256:8ff021a7845bf9a1a2ab27248f3c9216b4891f9139ed2286a2516c5fbac2f81b"},
+    {file = "bgfx_python-1.0.4-cp36-cp36m-win_amd64.whl", hash = "sha256:edd5944840e0cd9a0d9bee1f29ad57b5562ec3603bac84ce92bc420f7841412f"},
+    {file = "bgfx_python-1.0.4-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:902ac33ed3eb2753b0a8119ef986f0e14d6bd6cf731a183cab964d01d0a10008"},
+    {file = "bgfx_python-1.0.4-cp37-cp37m-manylinux2014_x86_64.whl", hash = "sha256:b8205923bd62d60db170e9c898c8b1996425da69e12317c815358366ccd97855"},
+    {file = "bgfx_python-1.0.4-cp37-cp37m-win_amd64.whl", hash = "sha256:390f03d4789577ba8f4ea856d74084008a272af86f08d1e2c8e127036ae4b88a"},
+    {file = "bgfx_python-1.0.4-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:b521f0505c510939b238285a4e6a16b25dfd4f2c326fca2a17531140b08ba053"},
+    {file = "bgfx_python-1.0.4-cp38-cp38-manylinux2014_x86_64.whl", hash = "sha256:810961dcc73b5321fcc8b9217f5a62e55826f6d3bebe3d6f8390b53964c45cfc"},
+    {file = "bgfx_python-1.0.4-cp38-cp38-win_amd64.whl", hash = "sha256:8a641c38a70a69077ba68b8e74fecb0fac33f9f20e5708a50d44757761d29d8e"},
 ]
 black = [
     {file = "black-19.10b0-py36-none-any.whl", hash = "sha256:1b30e59be925fafc1ee4565e5e08abef6b03fe455102883820fe5ee2e4734e0b"},
@@ -968,8 +968,8 @@ urllib3 = [
     {file = "urllib3-1.25.10.tar.gz", hash = "sha256:91056c15fa70756691db97756772bb1eb9678fa585d9184f24534b100dc60f4a"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.0.28-py2.py3-none-any.whl", hash = "sha256:8f582a030156282a9ee9d319984b759a232b07f86048c1d6a9e394afa44e78c8"},
-    {file = "virtualenv-20.0.28.tar.gz", hash = "sha256:688a61d7976d82b92f7906c367e83bb4b3f0af96f8f75bfcd3da95608fe8ac6c"},
+    {file = "virtualenv-20.0.30-py2.py3-none-any.whl", hash = "sha256:8cd7b2a4850b003a11be2fc213e206419efab41115cc14bca20e69654f2ac08e"},
+    {file = "virtualenv-20.0.30.tar.gz", hash = "sha256:7b54fd606a1b85f83de49ad8d80dbec08e983a2d2f96685045b262ebc7481ee5"},
 ]
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
