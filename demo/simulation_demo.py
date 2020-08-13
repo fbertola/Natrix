@@ -218,7 +218,8 @@ class SimulationDemo(ExampleWindow):
         self.fluid_simulator.update(dt)
         self.particle_area.update(dt)
 
-        if glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
+        if glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS\
+                and not ImGui.get_io().want_capture_mouse:
             n_mouse_x, n_mouse_y = self._get_normalized_mouse_coords(mouse_x, mouse_y)
             n_old_mouse_x, n_old_mouse_y = self._get_normalized_mouse_coords(
                 self.old_mouse_x, self.old_mouse_y
