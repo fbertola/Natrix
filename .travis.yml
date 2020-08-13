@@ -1,12 +1,14 @@
 language: python
 python:
   - "3.6"
+  - "3.7"
+  - "3.8"
 
 before_install:
-  - pip3 install pipenv
+  - pip3 install poetry
 
 install:
-  - pipenv sync --dev
+  - pipenv install
 
 script:
   - true
