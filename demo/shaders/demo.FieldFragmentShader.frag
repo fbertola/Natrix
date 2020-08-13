@@ -63,5 +63,5 @@ vec3 inferno(float t) {
 void main()
 {
     vec4 col = texture2D(s_texColor, v_texcoord0.xy*0.5 + 0.5);
-    gl_FragColor = vec4(viridis(col.x), col.x);
+    gl_FragColor = vec4(plasma(col.x), col.x);
 }

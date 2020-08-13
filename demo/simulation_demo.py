@@ -86,7 +86,7 @@ class SimulationDemo(ExampleWindow):
         )
 
         bgfx.set_debug(BGFX_DEBUG_TEXT)
-        bgfx.set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x0, 1.0, 0)
+        bgfx.set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x1a0427FF, 1.0, 0)
 
         self.vertex_layout = bgfx.VertexLayout()
         self.vertex_layout.begin().add(
