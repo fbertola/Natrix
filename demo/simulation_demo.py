@@ -86,7 +86,7 @@ class SimulationDemo(ExampleWindow):
         )
 
         bgfx.set_debug(BGFX_DEBUG_TEXT)
-        bgfx.set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x0, 1.0, 0)
+        bgfx.set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x1a0427FF, 1.0, 0)
 
         self.vertex_layout = bgfx.VertexLayout()
         self.vertex_layout.begin().add(
@@ -218,7 +218,8 @@ class SimulationDemo(ExampleWindow):
         self.fluid_simulator.update(dt)
         self.particle_area.update(dt)
 
-        if glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS:
+        if glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS\
+                and not ImGui.get_io().want_capture_mouse:
             n_mouse_x, n_mouse_y = self._get_normalized_mouse_coords(mouse_x, mouse_y)
             n_old_mouse_x, n_old_mouse_y = self._get_normalized_mouse_coords(
                 self.old_mouse_x, self.old_mouse_y
@@ -229,6 +230,7 @@ class SimulationDemo(ExampleWindow):
             self.fluid_simulator.add_velocity(
                 (n_mouse_x, n_mouse_y), (vel_x * 10, vel_y * 10), 32.0
             )
+
             self.particle_area.add_particles((n_mouse_x, n_mouse_y), self.particles_diameter, self.particles_strength)
 
         self.old_mouse_x = mouse_x
