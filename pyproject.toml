@@ -29,7 +29,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-bgfx-python = "^1.0.4"
+bgfx-python = "^1.0.5"
 glfw = "^1.12.0"
 python-decouple = "^3.3"
 

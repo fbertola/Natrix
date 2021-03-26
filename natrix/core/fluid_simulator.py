@@ -2,8 +2,9 @@ from ctypes import c_float
 from math import ceil
 from pathlib import Path
 
-# noinspection PyUnresolvedReferences
-from bgfx import as_void_ptr, bgfx, ShaderType, load_shader
+from pybgfx import bgfx
+from pybgfx.utils import as_void_ptr
+from pybgfx.utils.shaders_utils import ShaderType, load_shader
 
 from natrix.core.common.constants import TemplateConstants
 from natrix.core.utils.shaders_utils import create_buffer
@@ -115,14 +116,14 @@ class FluidSimulator:
     def add_velocity(self, position: tuple, velocity: tuple, radius: float):
         if self.simulate:
             self._init_compute_kernels()
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.position_uniform,
                 as_void_ptr((c_float * 2)(position[0], position[1])),
             )
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.value_uniform, as_void_ptr((c_float * 2)(velocity[0], velocity[1]))
             )
-            bgfx.set_uniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
+            bgfx.setUniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
 
             bgfx.dispatch(
                 0, self._add_velocity_kernel, self._num_groups_x, self._num_groups_y, 1
@@ -134,12 +135,12 @@ class FluidSimulator:
     def add_circle_obstacle(self, position: tuple, radius: float, static=False):
         if self.simulate:
             self._init_compute_kernels()
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.position_uniform,
                 as_void_ptr((c_float * 2)(position[0], position[1])),
             )
-            bgfx.set_uniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
-            bgfx.set_uniform(
+            bgfx.setUniform(self.radius_uniform, as_void_ptr((c_float * 1)(radius)))
+            bgfx.setUniform(
                 self.static_uniform, as_void_ptr((c_float * 1)(1.0 if static else 0.0))
             )
 
@@ -155,10 +156,10 @@ class FluidSimulator:
     def add_triangle_obstacle(self, p1: tuple, p2: tuple, p3: tuple, static=False):
         if self.simulate:
             self._init_compute_kernels()
-            bgfx.set_uniform(self.p1_uniform, as_void_ptr((c_float * 2)(p1[0], p1[1])))
-            bgfx.set_uniform(self.p2_uniform, as_void_ptr((c_float * 2)(p2[0], p2[1])))
-            bgfx.set_uniform(self.p3_uniform, as_void_ptr((c_float * 2)(p3[0], p3[1])))
-            bgfx.set_uniform(
+            bgfx.setUniform(self.p1_uniform, as_void_ptr((c_float * 2)(p1[0], p1[1])))
+            bgfx.setUniform(self.p2_uniform, as_void_ptr((c_float * 2)(p2[0], p2[1])))
+            bgfx.setUniform(self.p3_uniform, as_void_ptr((c_float * 2)(p3[0], p3[1])))
+            bgfx.setUniform(
                 self.static_uniform, as_void_ptr((c_float * 1)(1.0 if static else 0.0))
             )
 
@@ -232,18 +233,18 @@ class FluidSimulator:
             )
 
             # Clear pressure
-            bgfx.set_buffer(
+            bgfx.setBuffer(
                 TemplateConstants.GENERIC.value,
                 self._pressure_buffer[self.PRESSURE_READ],
-                bgfx.Access.READ_WRITE,
+                bgfx.Access.ReadWrite,
             )
             bgfx.dispatch(
                 0, self._clear_buffer_kernel, self._num_groups_x, self._num_groups_y, 1
             )
-            bgfx.set_buffer(
+            bgfx.setBuffer(
                 TemplateConstants.PRESSURE_IN.value,
                 self._pressure_buffer[self.PRESSURE_READ],
-                bgfx.Access.READ,
+                bgfx.Access.Read,
             )
 
             # Poisson
@@ -264,18 +265,18 @@ class FluidSimulator:
             self._flip_velocity_buffer()
 
             # Clear obstacles
-            bgfx.set_buffer(
+            bgfx.setBuffer(
                 TemplateConstants.GENERIC.value,
                 self._obstacles_buffer,
-                bgfx.Access.READ_WRITE,
+                bgfx.Access.ReadWrite,
             )
             bgfx.dispatch(
                 0, self._clear_buffer_kernel, self._num_groups_x, self._num_groups_y, 1
             )
-            bgfx.set_buffer(
+            bgfx.setBuffer(
                 TemplateConstants.OBSTACLES.value,
                 self._obstacles_buffer,
-                bgfx.Access.READ_WRITE,
+                bgfx.Access.ReadWrite,
             )
 
     def _set_size(self, width: int, height: int):
@@ -289,37 +290,37 @@ class FluidSimulator:
         self._num_groups_y = int(ceil(float(height) / float(group_size_y)))
 
     def _create_uniforms(self):
-        self.size_uniform = bgfx.create_uniform("_Size", bgfx.UniformType.VEC4)
-        self.position_uniform = bgfx.create_uniform("_Position", bgfx.UniformType.VEC4)
-        self.radius_uniform = bgfx.create_uniform("_Radius", bgfx.UniformType.VEC4)
-        self.value_uniform = bgfx.create_uniform("_Value", bgfx.UniformType.VEC4)
-        self.static_uniform = bgfx.create_uniform("_Static", bgfx.UniformType.VEC4)
-        self.p1_uniform = bgfx.create_uniform("_P1", bgfx.UniformType.VEC4)
-        self.p2_uniform = bgfx.create_uniform("_P2", bgfx.UniformType.VEC4)
-        self.p3_uniform = bgfx.create_uniform("_P3", bgfx.UniformType.VEC4)
-        self.elapsed_time_uniform = bgfx.create_uniform(
-            "_ElapsedTime", bgfx.UniformType.VEC4
+        self.size_uniform = bgfx.createUniform("_Size", bgfx.UniformType.Vec4)
+        self.position_uniform = bgfx.createUniform("_Position", bgfx.UniformType.Vec4)
+        self.radius_uniform = bgfx.createUniform("_Radius", bgfx.UniformType.Vec4)
+        self.value_uniform = bgfx.createUniform("_Value", bgfx.UniformType.Vec4)
+        self.static_uniform = bgfx.createUniform("_Static", bgfx.UniformType.Vec4)
+        self.p1_uniform = bgfx.createUniform("_P1", bgfx.UniformType.Vec4)
+        self.p2_uniform = bgfx.createUniform("_P2", bgfx.UniformType.Vec4)
+        self.p3_uniform = bgfx.createUniform("_P3", bgfx.UniformType.Vec4)
+        self.elapsed_time_uniform = bgfx.createUniform(
+            "_ElapsedTime", bgfx.UniformType.Vec4
         )
-        self.speed_uniform = bgfx.create_uniform("_Speed", bgfx.UniformType.VEC4)
-        self.dissipation_uniform = bgfx.create_uniform(
-            "_Dissipation", bgfx.UniformType.VEC4
+        self.speed_uniform = bgfx.createUniform("_Speed", bgfx.UniformType.Vec4)
+        self.dissipation_uniform = bgfx.createUniform(
+            "_Dissipation", bgfx.UniformType.Vec4
         )
-        self.velocity_uniform = bgfx.create_uniform("_Velocity", bgfx.UniformType.VEC4)
-        self.vorticity_scale_uniform = bgfx.create_uniform(
-            "_VorticityScale", bgfx.UniformType.VEC4
+        self.velocity_uniform = bgfx.createUniform("_Velocity", bgfx.UniformType.Vec4)
+        self.vorticity_scale_uniform = bgfx.createUniform(
+            "_VorticityScale", bgfx.UniformType.Vec4
         )
-        self.alpha_uniform = bgfx.create_uniform("_Alpha", bgfx.UniformType.VEC4)
-        self.rbeta_uniform = bgfx.create_uniform("_rBeta", bgfx.UniformType.VEC4)
+        self.alpha_uniform = bgfx.createUniform("_Alpha", bgfx.UniformType.Vec4)
+        self.rbeta_uniform = bgfx.createUniform("_rBeta", bgfx.UniformType.Vec4)
 
     def _update_params(self, time_delta: float):
-        bgfx.set_uniform(
+        bgfx.setUniform(
             self.elapsed_time_uniform, as_void_ptr((c_float * 1)(time_delta))
         )
-        bgfx.set_uniform(self.speed_uniform, as_void_ptr((c_float * 1)(self.speed)))
-        bgfx.set_uniform(
+        bgfx.setUniform(self.speed_uniform, as_void_ptr((c_float * 1)(self.speed)))
+        bgfx.setUniform(
             self.dissipation_uniform, as_void_ptr((c_float * 1)(self.dissipation))
         )
-        bgfx.set_uniform(
+        bgfx.setUniform(
             self.vorticity_scale_uniform, as_void_ptr((c_float * 1)(self.vorticity))
         )
 
@@ -327,31 +328,31 @@ class FluidSimulator:
             centre_factor = 1.0 / self.viscosity
             stencil_factor = 1.0 / (4.0 + centre_factor)
 
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.alpha_uniform, as_void_ptr((c_float * 1)(centre_factor))
             )
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.rbeta_uniform, as_void_ptr((c_float * 1)(stencil_factor))
             )
 
     def _init_compute_kernels(self):
-        bgfx.set_uniform(
+        bgfx.setUniform(
             self.size_uniform, as_void_ptr((c_float * 2)(self._width, self._height))
         )
 
-        bgfx.set_buffer(1, self._velocity_buffer[self.VELOCITY_READ], bgfx.Access.READ)
-        bgfx.set_buffer(
-            2, self._velocity_buffer[self.VELOCITY_WRITE], bgfx.Access.WRITE
+        bgfx.setBuffer(1, self._velocity_buffer[self.VELOCITY_READ], bgfx.Access.Read)
+        bgfx.setBuffer(
+            2, self._velocity_buffer[self.VELOCITY_WRITE], bgfx.Access.Write
         )
 
-        bgfx.set_buffer(3, self._pressure_buffer[self.PRESSURE_READ], bgfx.Access.READ)
-        bgfx.set_buffer(
-            4, self._pressure_buffer[self.PRESSURE_WRITE], bgfx.Access.WRITE
+        bgfx.setBuffer(3, self._pressure_buffer[self.PRESSURE_READ], bgfx.Access.Read)
+        bgfx.setBuffer(
+            4, self._pressure_buffer[self.PRESSURE_WRITE], bgfx.Access.Write
         )
 
-        bgfx.set_buffer(5, self._divergence_buffer, bgfx.Access.READ_WRITE)
-        bgfx.set_buffer(6, self._vorticity_buffer, bgfx.Access.READ_WRITE)
-        bgfx.set_buffer(7, self._obstacles_buffer, bgfx.Access.READ_WRITE)
+        bgfx.setBuffer(5, self._divergence_buffer, bgfx.Access.ReadWrite)
+        bgfx.setBuffer(6, self._vorticity_buffer, bgfx.Access.ReadWrite)
+        bgfx.setBuffer(7, self._obstacles_buffer, bgfx.Access.ReadWrite)
 
     def _create_buffers(self):
         self._velocity_buffer = [
@@ -367,59 +368,59 @@ class FluidSimulator:
         self._obstacles_buffer = create_buffer(self._num_cells, 2, self.vertex_layout)
 
     def _load_compute_kernels(self):
-        self._add_velocity_kernel = bgfx.create_program(
+        self._add_velocity_kernel = bgfx.createProgram(
             load_shader(
                 "shader.AddVelocity.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._init_boundaries_kernel = bgfx.create_program(
+        self._init_boundaries_kernel = bgfx.createProgram(
             load_shader(
                 "shader.InitBoundaries.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._advect_velocity_kernel = bgfx.create_program(
+        self._advect_velocity_kernel = bgfx.createProgram(
             load_shader(
                 "shader.AdvectVelocity.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._divergence_kernel = bgfx.create_program(
+        self._divergence_kernel = bgfx.createProgram(
             load_shader(
                 "shader.Divergence.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._poisson_kernel = bgfx.create_program(
+        self._poisson_kernel = bgfx.createProgram(
             load_shader("shader.Poisson.comp", ShaderType.COMPUTE, root_path=root_path),
             True,
         )
-        self._subtract_gradient_kernel = bgfx.create_program(
+        self._subtract_gradient_kernel = bgfx.createProgram(
             load_shader(
                 "shader.SubtractGradient.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._calc_vorticity_kernel = bgfx.create_program(
+        self._calc_vorticity_kernel = bgfx.createProgram(
             load_shader(
                 "shader.CalcVorticity.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._apply_vorticity_kernel = bgfx.create_program(
+        self._apply_vorticity_kernel = bgfx.createProgram(
             load_shader(
                 "shader.ApplyVorticity.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._add_circle_obstacle_kernel = bgfx.create_program(
+        self._add_circle_obstacle_kernel = bgfx.createProgram(
             load_shader(
                 "shader.AddCircleObstacle.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._add_triangle_obstacle_kernel = bgfx.create_program(
+        self._add_triangle_obstacle_kernel = bgfx.createProgram(
             load_shader(
                 "shader.AddTriangleObstacle.comp",
                 ShaderType.COMPUTE,
@@ -427,13 +428,13 @@ class FluidSimulator:
             ),
             True,
         )
-        self._clear_buffer_kernel = bgfx.create_program(
+        self._clear_buffer_kernel = bgfx.createProgram(
             load_shader(
                 "shader.ClearBuffer.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
-        self._viscosity_kernel = bgfx.create_program(
+        self._viscosity_kernel = bgfx.createProgram(
             load_shader(
                 "shader.Viscosity.comp", ShaderType.COMPUTE, root_path=root_path
             ),
@@ -445,15 +446,15 @@ class FluidSimulator:
         self.VELOCITY_READ = self.VELOCITY_WRITE
         self.VELOCITY_WRITE = tmp
 
-        bgfx.set_buffer(
+        bgfx.setBuffer(
             TemplateConstants.VELOCITY_IN.value,
             self._velocity_buffer[self.VELOCITY_READ],
-            bgfx.Access.READ,
+            bgfx.Access.Read,
         )
-        bgfx.set_buffer(
+        bgfx.setBuffer(
             TemplateConstants.VELOCITY_OUT.value,
             self._velocity_buffer[self.VELOCITY_WRITE],
-            bgfx.Access.WRITE,
+            bgfx.Access.Write,
         )
 
     def _flip_pressure_buffer(self):
@@ -461,15 +462,15 @@ class FluidSimulator:
         self.PRESSURE_READ = self.PRESSURE_WRITE
         self.PRESSURE_WRITE = tmp
 
-        bgfx.set_buffer(
+        bgfx.setBuffer(
             TemplateConstants.PRESSURE_IN.value,
             self._pressure_buffer[self.PRESSURE_READ],
-            bgfx.Access.READ,
+            bgfx.Access.Read,
         )
-        bgfx.set_buffer(
+        bgfx.setBuffer(
             TemplateConstants.PRESSURE_OUT.value,
             self._pressure_buffer[self.PRESSURE_WRITE],
-            bgfx.Access.WRITE,
+            bgfx.Access.Write,
         )
 
     def destroy(self):

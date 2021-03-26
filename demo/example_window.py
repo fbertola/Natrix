@@ -1,4 +1,5 @@
 import ctypes
+import cppyy
 import sys
 import os
 import time
@@ -6,11 +7,11 @@ import time
 # noinspection PyPackageRequirements
 import glfw
 
-# noinspection PyUnresolvedReferences
-from bgfx import bgfx, as_void_ptr
+from pybgfx import bgfx
 
 # noinspection PyPackageRequirements,PyProtectedMember
 from glfw import _glfw as glfw_native
+from pybgfx.utils import as_void_ptr
 
 
 class ExampleWindow(object):
@@ -87,32 +88,22 @@ class ExampleWindow(object):
         handle, display = None, None
 
         if sys.platform == "darwin":
-            glfw_native.glfwGetCocoaWindow.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
-            glfw_native.glfwGetCocoaWindow.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetCocoaWindow(self.window)
         elif sys.platform == "win32":
-            glfw_native.glfwGetWin32Window.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
-            glfw_native.glfwGetWin32Window.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetWin32Window(self.window)
         elif sys.platform == "linux" and "WAYLAND_DISPLAY" not in os.environ:
-            glfw_native.glfwGetX11Window.argtypes = [ctypes.POINTER(glfw._GLFWwindow)]
-            glfw_native.glfwGetX11Window.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetX11Window(self.window)
             display = glfw_native.glfwGetX11Display()
         elif sys.platform == "linux" and "WAYLAND_DISPLAY" in os.environ:
-            glfw_native.glfwGetWaylandWindow.argtypes = [
-                ctypes.POINTER(glfw._GLFWwindow)
-            ]
-            glfw_native.glfwGetWaylandWindow.restype = ctypes.c_void_p
             handle = glfw_native.glfwGetWaylandWindow(self.window)
             display = glfw_native.glfwGetWaylandDisplay()
 
         data = bgfx.PlatformData()
-        data.ndt = display
+        data.ndt = as_void_ptr(display) if display else cppyy.nullptr
         data.nwh = as_void_ptr(handle)
-        data.context = None
-        data.back_buffer = None
-        data.back_buffer_ds = None
+        data.context = cppyy.nullptr
+        data.backBuffer = cppyy.nullptr
+        data.backBufferDS = cppyy.nullptr
 
         self.init(data)
 

@@ -1,19 +1,19 @@
+import ctypes
 from ctypes import c_float, sizeof, Structure
 from pathlib import Path
 
 import glfw
 import numpy as np
-from bgfx import (
+from pybgfx import (
     bgfx,
     ImGui,
-    ImGuiExtra,
+)
+from pybgfx.utils.imgui_utils import ImGuiExtra
+from pybgfx.constants import (
     BGFX_CLEAR_COLOR,
     BGFX_CLEAR_DEPTH,
     BGFX_RESET_VSYNC,
     BGFX_DEBUG_TEXT,
-    as_void_ptr,
-    ShaderType,
-    load_shader,
     BGFX_STATE_WRITE_RGB,
     BGFX_STATE_WRITE_A,
     BGFX_STATE_DEFAULT,
@@ -21,10 +21,13 @@ from bgfx import (
     BGFX_RESET_HIDPI,
     BGFX_STATE_BLEND_ALPHA,
 )
+from pybgfx.utils import as_void_ptr
+from pybgfx.utils.shaders_utils import ShaderType, load_shader
 from loguru import logger
 
 from demo.example_window import ExampleWindow
 from demo.smooth_particles_area import SmoothParticlesArea
+# from demo.utils.imgui_utils import show_properties_dialog
 from demo.utils.imgui_utils import show_properties_dialog
 from demo.utils.matrix_utils import look_at, proj
 from natrix.core.fluid_simulator import FluidSimulator
@@ -70,13 +73,13 @@ class SimulationDemo(ExampleWindow):
         self.particles_strength = 0.04
         self.particles_diameter = 250.0
 
-        self.show_quiver_plot_overlay = ImGui.Bool(False)
-        self.quiver_plot_resolution = ImGui.Int(2)
+        self.show_quiver_plot_overlay = ctypes.c_bool(False)
+        self.quiver_plot_resolution = ctypes.c_int(2)
         self.quiver_plot_resolutions = (8.0, 16.0, 32.0, 64.0)
 
     def init(self, platform_data):
-        self.init_conf.platform_data = platform_data
-        bgfx.render_frame()
+        bgfx.renderFrame()
+        bgfx.setPlatformData(platform_data)
         bgfx.init(self.init_conf)
         bgfx.reset(
             self.fb_width,
@@ -85,13 +88,13 @@ class SimulationDemo(ExampleWindow):
             self.init_conf.resolution.format,
         )
 
-        bgfx.set_debug(BGFX_DEBUG_TEXT)
-        bgfx.set_view_clear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x1a0427FF, 1.0, 0)
+        bgfx.setDebug(BGFX_DEBUG_TEXT)
+        bgfx.setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x1a0427FF, 1.0, 0)
 
         self.vertex_layout = bgfx.VertexLayout()
         self.vertex_layout.begin().add(
-            bgfx.Attrib.POSITION, 3, bgfx.AttribType.FLOAT
-        ).add(bgfx.Attrib.TEXCOORD0, 3, bgfx.AttribType.FLOAT).end()
+            bgfx.Attrib.Position, 3, bgfx.AttribType.Float
+        ).add(bgfx.Attrib.TexCoord0, 3, bgfx.AttribType.Float).end()
 
         self.fluid_simulator = FluidSimulator(
             self.width // 2, self.height // 2, self.vertex_layout
@@ -107,12 +110,12 @@ class SimulationDemo(ExampleWindow):
 
         # Create static vertex buffer
         vb_memory = bgfx.copy(as_void_ptr(cube_vertices), sizeof(PosColorVertex) * 4)
-        self.vertex_buffer = bgfx.create_vertex_buffer(vb_memory, self.vertex_layout)
+        self.vertex_buffer = bgfx.createVertexBuffer(vb_memory, self.vertex_layout)
 
         ib_memory = bgfx.copy(as_void_ptr(cube_indices), cube_indices.nbytes)
-        self.index_buffer = bgfx.create_index_buffer(ib_memory)
+        self.index_buffer = bgfx.createIndexBuffer(ib_memory)
 
-        self.output_texture = bgfx.create_texture2d(
+        self.output_texture = bgfx.createTexture2D(
             self.fb_width,
             self.fb_height,
             False,
@@ -121,21 +124,21 @@ class SimulationDemo(ExampleWindow):
             BGFX_TEXTURE_COMPUTE_WRITE,
         )
 
-        self.texture_uniform = bgfx.create_uniform(
-            "InputTexture", bgfx.UniformType.SAMPLER
+        self.texture_uniform = bgfx.createUniform(
+            "InputTexture", bgfx.UniformType.Sampler
         )
-        self.window_size_uniform = bgfx.create_uniform(
-            "WindowSize", bgfx.UniformType.VEC4
+        self.window_size_uniform = bgfx.createUniform(
+            "WindowSize", bgfx.UniformType.Vec4
         )
-        self.velocity_size_uniform = bgfx.create_uniform(
-            "VelocitySize", bgfx.UniformType.VEC4
+        self.velocity_size_uniform = bgfx.createUniform(
+            "VelocitySize", bgfx.UniformType.Vec4
         )
-        self.arrow_tile_size_uniform = bgfx.create_uniform(
-            "ArrowTileSize", bgfx.UniformType.VEC4
+        self.arrow_tile_size_uniform = bgfx.createUniform(
+            "ArrowTileSize", bgfx.UniformType.Vec4
         )
 
         # Create program from shaders.
-        self.main_program = bgfx.create_program(
+        self.main_program = bgfx.createProgram(
             load_shader(
                 "demo.VertexShader.vert", ShaderType.VERTEX, root_path=root_path
             ),
@@ -146,7 +149,7 @@ class SimulationDemo(ExampleWindow):
             ),
             True,
         )
-        self.quiver_program = bgfx.create_program(
+        self.quiver_program = bgfx.createProgram(
             load_shader(
                 "demo.VertexShader.vert", ShaderType.VERTEX, root_path=root_path
             ),
@@ -157,20 +160,20 @@ class SimulationDemo(ExampleWindow):
             ),
             True,
         )
-        self.cs_program = bgfx.create_program(
+        self.cs_program = bgfx.createProgram(
             load_shader(
                 "demo.ComputeShader.comp", ShaderType.COMPUTE, root_path=root_path
             ),
             True,
         )
 
-        ImGuiExtra.imgui_create(36.0)
+        ImGuiExtra.create(36.0)
 
     def shutdown(self):
         self.fluid_simulator.destroy()
         self.particle_area.destroy()
 
-        ImGuiExtra.imgui_destroy()
+        ImGuiExtra.destroy()
 
         bgfx.destroy(self.index_buffer)
         bgfx.destroy(self.vertex_buffer)
@@ -188,13 +191,13 @@ class SimulationDemo(ExampleWindow):
     def update(self, dt):
         mouse_x, mouse_y, buttons_states = self.get_mouse_state()
 
-        ImGuiExtra.imgui_begin_frame(
+        ImGuiExtra.begin_frame(
             int(mouse_x), int(mouse_y), buttons_states, 0, self.fb_width, self.fb_height
         )
         show_properties_dialog(self.fb_width, self.fb_height, self.hidpi)
         self._create_imgui_config_dialog()
 
-        ImGuiExtra.imgui_end_frame()
+        ImGuiExtra.end_frame()
 
         at = (c_float * 3)(*[0.0, 0.0, 0.0])
         eye = (c_float * 3)(*[0.0, 0.0, 10.0])
@@ -203,15 +206,15 @@ class SimulationDemo(ExampleWindow):
         view = look_at(eye, at, up)
         projection = proj(11.4, 1, 0.1, 100.0)
 
-        bgfx.set_view_rect(0, 0, 0, self.fb_width, self.fb_height)
+        bgfx.setViewRect(0, 0, 0, self.fb_width, self.fb_height)
 
-        bgfx.set_view_transform(0, as_void_ptr(view), as_void_ptr(projection))
+        bgfx.setViewTransform(0, as_void_ptr(view), as_void_ptr(projection))
 
-        bgfx.set_vertex_buffer(0, self.vertex_buffer, 0, 4)
-        bgfx.set_index_buffer(self.index_buffer, 0, cube_indices.size)
+        bgfx.setVertexBuffer(0, self.vertex_buffer, 0, 4)
+        bgfx.setIndexBuffer(self.index_buffer, 0, cube_indices.size)
 
-        bgfx.set_state(BGFX_STATE_DEFAULT)
-        bgfx.set_image(0, self.output_texture, 0, bgfx.Access.WRITE)
+        bgfx.setState(BGFX_STATE_DEFAULT)
+        bgfx.setImage(0, self.output_texture, 0, bgfx.Access.Write)
 
         self.fluid_simulator.add_circle_obstacle((0.5, 0.5), 40.0)
 
@@ -219,7 +222,7 @@ class SimulationDemo(ExampleWindow):
         self.particle_area.update(dt)
 
         if glfw.get_mouse_button(self.window, glfw.MOUSE_BUTTON_LEFT) == glfw.PRESS\
-                and not ImGui.get_io().want_capture_mouse:
+                and not ImGui.GetIO().WantCaptureMouse:
             n_mouse_x, n_mouse_y = self._get_normalized_mouse_coords(mouse_x, mouse_y)
             n_old_mouse_x, n_old_mouse_y = self._get_normalized_mouse_coords(
                 self.old_mouse_x, self.old_mouse_y
@@ -235,23 +238,23 @@ class SimulationDemo(ExampleWindow):
         self.old_mouse_x = mouse_x
         self.old_mouse_y = mouse_y
 
-        bgfx.set_state(
+        bgfx.setState(
             0 | BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_BLEND_ALPHA
         )
 
         bgfx.dispatch(0, self.cs_program, self.fb_width // 16, self.fb_height // 16)
-        bgfx.set_texture(0, self.texture_uniform, self.output_texture)
+        bgfx.setTexture(0, self.texture_uniform, self.output_texture)
         bgfx.submit(0, self.main_program, 0, False)
 
         if self.show_quiver_plot_overlay.value:
-            bgfx.set_buffer(
-                1, self.fluid_simulator.get_velocity_buffer(), bgfx.Access.READ
+            bgfx.setBuffer(
+                1, self.fluid_simulator.get_velocity_buffer(), bgfx.Access.Read
             )
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.window_size_uniform,
                 as_void_ptr((c_float * 2)(self.fb_width, self.fb_height)),
             )
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.velocity_size_uniform,
                 as_void_ptr(
                     (c_float * 2)(
@@ -259,7 +262,7 @@ class SimulationDemo(ExampleWindow):
                     )
                 ),
             )
-            bgfx.set_uniform(
+            bgfx.setUniform(
                 self.arrow_tile_size_uniform,
                 as_void_ptr(
                     (c_float * 1)(
@@ -282,81 +285,81 @@ class SimulationDemo(ExampleWindow):
     def _create_imgui_config_dialog(self):
         res_multiplier = 2 if self.hidpi else 1
 
-        ImGui.set_next_window_pos(
-            ImGui.Vec2(
+        ImGui.SetNextWindowPos(
+            ImGui.ImVec2(
                 self.fb_width - self.fb_width / 4.1 - 20.0 * res_multiplier,
                 40.0 * res_multiplier,
             ),
-            ImGui.Condition.FirstUseEver,
+            ImGui.ImGuiCond_FirstUseEver,
         )
-        ImGui.set_next_window_size(
-            ImGui.Vec2(self.fb_width / 4.1, self.fb_height / 2.1),
-            ImGui.Condition.FirstUseEver,
+        ImGui.SetNextWindowSize(
+            ImGui.ImVec2(self.fb_width / 4.1, self.fb_height / 2.1),
+            ImGui.ImGuiCond_FirstUseEver,
         )
 
-        ImGui.begin("\uf013 Settings")
+        ImGui.Begin("\uf013 Settings")
 
-        vorticity = ImGui.Float(self.fluid_simulator.vorticity)
-        viscosity = ImGui.Float(self.fluid_simulator.viscosity)
-        speed = ImGui.Float(self.fluid_simulator.speed)
-        iterations = ImGui.Int(self.fluid_simulator.iterations)
-        borders = ImGui.Bool(self.fluid_simulator.has_borders)
-        fluid_dissipation = ImGui.Float(self.fluid_simulator.dissipation)
-        part_strength = ImGui.Float(self.particles_strength)
-        part_diameter = ImGui.Float(self.particles_diameter)
+        vorticity = ctypes.c_float(self.fluid_simulator.vorticity)
+        viscosity = ctypes.c_float(self.fluid_simulator.viscosity)
+        speed = ctypes.c_float(self.fluid_simulator.speed)
+        iterations = ctypes.c_int(self.fluid_simulator.iterations)
+        borders = ctypes.c_bool(self.fluid_simulator.has_borders)
+        fluid_dissipation = ctypes.c_float(self.fluid_simulator.dissipation)
+        part_strength = ctypes.c_float(self.particles_strength)
+        part_diameter = ctypes.c_float(self.particles_diameter)
 
-        ImGui.text("Fluid simulation parameters")
+        ImGui.Text("Fluid simulation parameters")
 
-        if ImGui.slider_float("Vorticity", vorticity, 0.0, 10.0):
+        if ImGui.SliderFloat("Vorticity", vorticity, 0.0, 10.0):
             self.fluid_simulator.vorticity = vorticity.value
 
-        if ImGui.slider_float("Viscosity", viscosity, 0.0, 10.0):
+        if ImGui.SliderFloat("Viscosity", viscosity, 0.0, 10.0):
             self.fluid_simulator.viscosity = viscosity.value
 
-        if ImGui.slider_float("Speed", speed, 1.0, 1000.0):
+        if ImGui.SliderFloat("Speed", speed, 1.0, 1000.0):
             self.fluid_simulator.speed = speed.value
             self.particle_area.speed = speed.value
 
-        if ImGui.slider_float("V_Dissipation", fluid_dissipation, 0.500, 1.0):
+        if ImGui.SliderFloat("V_Dissipation", fluid_dissipation, 0.500, 1.0):
             self.fluid_simulator.dissipation = fluid_dissipation.value
 
-        if ImGui.slider_int("Iteration", iterations, 10, 100):
+        if ImGui.SliderInt("Iteration", iterations, 10, 100):
             self.fluid_simulator.iterations = iterations.value
 
-        if ImGui.checkbox("Borders", borders):
+        if ImGui.Checkbox("Borders", borders):
             self.fluid_simulator.has_borders = borders.value
 
-        ImGui.separator()
+        ImGui.Separator()
 
-        particles_dissipation = ImGui.Float(self.particle_area.dissipation)
+        particles_dissipation = ctypes.c_float(self.particle_area.dissipation)
 
-        ImGui.text("Particles area parameters")
+        ImGui.Text("Particles area parameters")
 
-        if ImGui.slider_float("P_Dissipation", particles_dissipation, 0.900, 1.0):
+        if ImGui.SliderFloat("P_Dissipation", particles_dissipation, 0.900, 1.0):
             self.particle_area.dissipation = particles_dissipation.value
 
-        if ImGui.slider_float("Strength", part_strength, 0.0, 1.0):
+        if ImGui.SliderFloat("Strength", part_strength, 0.0, 1.0):
             self.particles_strength = part_strength.value
 
-        if ImGui.slider_float("Diameter", part_diameter, 100.0, 1000.0):
+        if ImGui.SliderFloat("Diameter", part_diameter, 100.0, 1000.0):
             self.particles_diameter = part_diameter.value
 
-        ImGui.separator()
+        ImGui.Separator()
 
-        stop = ImGui.Bool(not self.fluid_simulator.simulate)
+        stop = ctypes.c_bool(not self.fluid_simulator.simulate)
 
-        if ImGui.checkbox("Stop simulation", stop):
+        if ImGui.Checkbox("Stop simulation", stop):
             self.fluid_simulator.simulate = not stop.value
             self.particle_area.simulate = not stop.value
 
-        ImGui.checkbox("Show velocity field", self.show_quiver_plot_overlay)
-        ImGui.same_line()
-        ImGui.push_item_width(200.0)
-        ImGui.combo(
-            "", self.quiver_plot_resolution, ["Very Small", "Small", "Medium", "Large"],
+        ImGui.Checkbox("Show velocity field", self.show_quiver_plot_overlay)
+        ImGui.SameLine()
+        ImGui.PushItemWidth(200.0)
+        ImGui.Combo(
+            "", self.quiver_plot_resolution, ["Very Small", "Small", "Medium", "Large"], 4,
         )
-        ImGui.pop_item_width()
-        ImGui.end()
+        ImGui.PopItemWidth()
+        ImGui.End()
 
 
 if __name__ == "__main__":
