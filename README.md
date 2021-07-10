@@ -51,7 +51,7 @@ $ poetry install
 
 ## Examples
 
-In the [demo](https://github.com/fbertola/Natrix/tree/demo/demo) folder you will find a complete example, be sure to check it out. 
+In the [demo](https://github.com/fbertola/Natrix/tree/master/demo) folder you will find a complete example, be sure to check it out. 
 
 ## Credits
 
