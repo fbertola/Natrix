@@ -60,8 +60,40 @@ vec3 inferno(float t) {
 
 }
 
+vec3 posterize(vec3 _rgb, float _numColors)
+{
+	return floor(_rgb*_numColors) / _numColors;
+}
+
+vec4 posterize(vec4 _rgba, float _numColors)
+{
+	return vec4(posterize(_rgba.xyz, _numColors), _rgba.w);
+}
+
+#define NUM_OCTAVES 5
+
+float rand(float n){return fract(sin(n) * 43758.5453123);}
+
+float noise(float p){
+	float fl = floor(p);
+  float fc = fract(p);
+	return mix(rand(fl), rand(fl + 1.0), fc);
+}
+
+float fbm(float x) {
+	float v = 0.0;
+	float a = 0.5;
+	float shift = float(100);
+	for (int i = 0; i < NUM_OCTAVES; ++i) {
+		v += a * noise(x);
+		x = x * 2.0 + shift;
+		a *= 0.5;
+	}
+	return v;
+}
+
 void main()
 {
     vec4 col = texture2D(s_texColor, v_texcoord0.xy*0.5 + 0.5);
-    gl_FragColor = vec4(plasma(col.x), col.x);
+    gl_FragColor = vec4(plasma(fbm(col.x)), col.x);
 }
