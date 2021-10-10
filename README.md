@@ -7,7 +7,7 @@
 <h4 align="center">Fast fluid simultation in Python.</h4>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/python-v3.6+-blue.svg">
+  <img src="https://img.shields.io/badge/python-v3.7+-blue.svg">
   <a href="https://travis-ci.com/fbertola/Natrix"><img src="https://travis-ci.com/fbertola/Natrix.svg?branch=master"></a>
   <img src="https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen.svg">
   <a href="https://github.com/fbertola/Natrix/issues"><img src="https://img.shields.io/github/issues/fbertola/Natrix.svg"></a>
@@ -69,7 +69,7 @@ This software uses the following open source packages:
 
     BSD 2-Clause License
     
-    Copyright (c) 2020, Federico Bertola
+    Copyright (c) 2021, Federico Bertola
     All rights reserved.
     
     Redistribution and use in source and binary forms, with or without
